@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Stock & Scan Native</title>
+    <style>
+        :root {
+            --primary: #6366f1;
+            --secondary: #818cf8;
+            --background: #f8fafc;
+            --surface: #ffffff;
+            --text: #1e293b;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+            --success: #10b981;
+            --error: #ef4444;
+            --warning: #f59e0b;
+            --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+        }
+
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { 
+            margin: 0; 
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
+            background-color: var(--background); 
+            color: var(--text);
+            transition: all 0.3s ease;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* Layout */
+        .app-container { display: flex; flex: 1; overflow: hidden; position: relative; }
+        
+        /* Sidebar / Navigation */
+        .sidebar {
+            width: 260px;
+            background-color: var(--surface);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.3s ease;
+            z-index: 100;
+        }
+        .sidebar-header {
+            padding: 24px;
+            text-align: center;
+            border-bottom: 1px solid var(--border);
+        }
+        .sidebar-header h1 { 
+            font-size: 1.2rem; 
+            margin: 0; 
+            color: var(--primary); 
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .nav-menu { flex: 1; padding: 16px; display: flex; flex-direction: column; gap: 8px; }
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            border-radius: 12px;
+            cursor: pointer;
+            color: var(--text-muted);
+            transition: all 0.2s;
+            font-weight: 500;
+            text-decoration: none;
+        }
+        .nav-item:hover { background-color: var(--border); color: var(--text); }
+        .nav-item.active { background-color: var(--primary); color: white; box-shadow: var(--shadow); }
+
+        /* Main Content Area */
+        .main-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 24px;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+        .view { display: none; animation: fadeIn 0.3s ease; }
+        .view.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Components */
+        .card {
+            background-color: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: var(--shadow);
+        }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
+        
+        /* Forms */
+        .form-group { margin-bottom: 16px; }
+        .form-group label { display: block; margin-bottom: 6px; font-size: 0.85rem; color: var(--text-muted); font-weight: 600; }
+        .input {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background-color: var(--background);
+            color: var(--text);
+            font-size: 1rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .input:focus { border-color: var(--primary); }
+        .btn {
+            padding: 12px 24px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .btn-primary { background-color: var(--primary); color: white; }
+        .btn-primary:hover { opacity: 0.9; transform: translateY(-1px); }
+        .btn-secondary { background-color: var(--border); color: var(--text); }
+        .btn-danger { background-color: var(--error); color: white; }
+
+        /* Table Styles */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 16px;
+        }
+        .data-table th {
+            text-align: left;
+            padding: 12px;
+            border-bottom: 2px solid var(--border);
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            text-transform: uppercase;
+        }
+        .data-table td {
+            padding: 12px;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.9rem;
+        }
+        .badge {
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+        .badge-success { background-color: var(--success); color: white; }
+        .badge-error { background-color: var(--error); color: white; }
+
+        /* Command Console */
+        .command-bar {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 90%;
+            max-width: 600px;
+            background-color: var(--surface);
+            border: 2px solid var(--primary);
+            border-radius: 50px;
+            padding: 8px 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.3);
+            z-index: 1000;
+        }
+        .command-input {
+            flex: 1;
+            border: none;
+            background: transparent;
+            color: var(--text);
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            outline: none;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .sidebar {
+                position: absolute;
+                left: -260px;
+                height: 100%;
+            }
+            .sidebar.open { transform: translateX(260px); }
+            .mobile-nav {
+                display: flex;
+                justify-content: space-around;
+                background-color: var(--surface);
+                border-top: 1px solid var(--border);
+                padding: 12px;
+                position: fixed;
+                bottom: 0;
+                width: 100%;
+                z-index: 90;
+            }
+            .main-content { padding-bottom: 80px; }
+        }
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <h1>Stock Pro</h1>
+            </div>
+            <nav class="nav-menu">
+                <div class="nav-item active" onclick="app.switchView('view-stock')" data-view="view-stock">📦 <span data-i18n="menu_stock">Stock</span></div>
+                <div class="nav-item" onclick="app.switchView('view-sales')" data-view="view-sales">🛒 <span data-i18n="menu_sales">Ventas</span></div>
+                <div class="nav-item" onclick="app.switchView('view-reports')" data-view="view-reports">📊 <span data-i18n="menu_reports">Reportes</span></div>
+                <div class="nav-item" onclick="app.switchView('view-settings')" data-view="view-settings">⚙️ <span data-i18n="menu_settings">Ajustes</span></div>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+            <!-- STOCK VIEW -->
+            <div id="view-stock" class="view active">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                    <h2 data-i18n="menu_stock">Gestión de Stock</h2>
+                    <button class="btn btn-primary" onclick="app.showModal('modal-product')">➕ <span data-i18n="btn_save">Nuevo Producto</span></button>
+                </div>
+                
+                <div class="card">
+                    <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+                        <input type="text" id="stock-search" class="input" placeholder="Buscar producto o código..." oninput="app.loadStock()">
+                        <button class="btn btn-secondary" onclick="app.loadStock()">🔄</button>
+                    </div>
+                    <div style="overflow-x: auto;">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Código</th>
+                                    <th>Nombre</th>
+                                    <th>Categoría</th>
+                                    <th>Precio</th>
+                                    <th>Cantidad</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="stock-table-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SALES VIEW -->
+            <div id="view-sales" class="view">
+                <h2 data-i18n="menu_sales">Terminal de Ventas</h2>
+                <div class="grid">
+                    <div class="card">
+                        <h3>🛒 Carrito</h3>
+                        <div id="cart-items" style="min-height: 200px; margin-bottom: 20px;"></div>
+                        <div style="font-size: 1.5rem; font-weight: 800; text-align: right; margin-bottom: 20px;">
+                            Total: <span id="cart-total">$0.00</span>
+                        </div>
+                        <button class="btn btn-primary" style="width: 100%" onclick="app.openCheckout()">💰 <span data-i18n="btn_pay">Cobrar Venta</span></button>
+                    </div>
+                    <div class="card">
+                        <h3>🔍 Búsqueda Rápida</h3>
+                        <div class="form-group">
+                            <input type="text" id="sale-scan" class="input" placeholder="Escanea código o escribe nombre..." oninput="app.quickAddProduct()">
+                        </div>
+                        <div id="quick-results"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- REPORTS VIEW -->
+            <div id="view-reports" class="view">
+                <h2 data-i18n="menu_reports">Reportes y Análisis</h2>
+                <div class="grid">
+                    <div class="card">
+                        <h3>Resumen Financiero</h3>
+                        <div id="report-summary" style="font-size: 1.1rem; line-height: 2;"></div>
+                    </div>
+                    <div class="card">
+                        <h3>⚠️ Stock Crítico</h3>
+                        <div id="report-alerts"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SETTINGS VIEW -->
+            <div id="view-settings" class="view">
+                <h2 data-i18n="menu_settings">Ajustes del Sistema</h2>
+                <div class="card">
+                    <h3>Personalización</h3>
+                    <div class="form-group">
+                        <label>Tema Visual</label>
+                        <select id="theme-select" class="input" onchange="app.setTheme(this.value)">
+                            <option value="light">Luz</option>
+                            <option value="dark">Oscuro</option>
+                            <option value="night">Noche (AMOLED)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Idioma</label>
+                        <select id="lang-select" class="input" onchange="app.setLang(this.value)">
+                            <option value="es">Español</option>
+                            <option value="en">English</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="card">
+                    <h3>Administración</h3>
+                    <button class="btn btn-secondary" onclick="app.exportCSV()">📄 Exportar Inventario CSV</button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- MODALS -->
+    <div id="modal-product" class="modal hidden" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); display:flex; align-items:center; justify-content:center; z-index:1000;">
+        <div class="card" style="width: 400px; max-width: 90%;">
+            <h3 id="modal-title">Nuevo Producto</h3>
+            <div class="form-group">
+                <label>Código</label>
+                <input type="text" id="p-code" class="input">
+            </div>
+            <div class="form-group">
+                <label>Nombre</label>
+                <input type="text" id="p-name" class="input">
+            </div>
+            <div class="form-group">
+                <label>Precio ($)</label>
+                <input type="number" id="p-price" class="input" step="0.01">
+            </div>
+            <div class="form-group">
+                <label>Cantidad</label>
+                <input type="number" id="p-qty" class="input">
+            </div>
+            <div class="form-group">
+                <label>Categoría</label>
+                <input type="text" id="p-cat" class="input">
+            </div>
+            <div class="form-group" style="display:flex; align-items:center; gap:10px;">
+                <input type="checkbox" id="p-weight">
+                <label style="margin:0">Venta por Peso (Kilos)</label>
+            </div>
+            <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:20px;">
+                <button class="btn btn-secondary" onclick="app.closeModal('modal-product')">Cancelar</button>
+                <button class="btn btn-primary" onclick="app.saveProduct()">Guardar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Checkout Modal -->
+    <div id="modal-checkout" class="modal hidden" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); display:flex; align-items:center; justify-content:center; z-index:1000;">
+        <div class="card" style="width: 400px; max-width: 90%;">
+            <h3>Finalizar Cobro</h3>
+            <div class="form-group">
+                <label>Método de Pago</label>
+                <select id="pay-method" class="input" onchange="app.togglePaymentFields()">
+                    <option value="Efectivo">Efectivo</option>
+                    <option value="Transferencia">Transferencia</option>
+                    <option value="Tarjeta">Tarjeta</option>
+                </select>
+            </div>
+            <div id="cash-fields" class="form-group">
+                <label>Paga con ($)</label>
+                <input type="number" id="pay-amount" class="input" oninput="app.calcChange()">
+            </div>
+            <div id="alias-fields" class="form-group hidden">
+                <label>Alias / QR</label>
+                <input type="text" id="pay-alias" class="input">
+            </div>
+            <div style="text-align:right; font-size: 1.2rem; font-weight:bold; margin: 20px 0;">
+                Vuelto: <span id="pay-change">$0.00</span>
+            </div>
+            <div style="display:flex; justify-content:flex-end; gap:10px;">
+                <button class="btn btn-secondary" onclick="app.closeModal('modal-checkout')">Volver</button>
+                <button class="btn btn-primary" onclick="app.confirmSale()">Confirmar Venta ✅</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="command-bar">
+        <span style="color: var(--primary); font-weight: bold;">&gt;</span>
+        <input type="text" id="cmd-input" class="command-input" placeholder="Escribe un comando (ej: stock.list)..." onkeydown="if(event.key==='Enter') app.execCommand(this.value)">
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8888/api';
+        
+        const app = {
+            state: {
+                currentView: 'view-stock',
+                role: 'empleado',
+                isPro: false,
+                theme: 'light',
+                lang: 'es',
+                cart: [],
+                translations: {}
+            },
+
+            async init() {
+                await this.loadConfig();
+                await this.loadTranslations();
+                this.applyTheme();
+                this.applyTranslations();
+                this.loadStock();
+                this.switchView('view-stock');
+            },
+
+            async loadConfig() {
+                try {
+                    const res = await fetch(`${API_BASE}/config`);
+                    const data = await res.json();
+                    if (data.status === 'success') {
+                        this.state.version = data.data.version;
+                    }
+                } catch (e) { console.error("Config load error", e); }
+            },
+
+            async loadTranslations() {
+                try {
+                    const res = await fetch(`/src/ui/lang/${this.state.lang}.json`);
+                    this.state.translations = await res.json();
+                } catch (e) { console.error("Lang load error", e); }
+            },
+
+            applyTranslations() {
+                document.querySelectorAll('[data-i18n]').forEach(el => {
+                    const key = el.getAttribute('data-i18n');
+                    el.innerText = this.state.translations[key] || key;
+                });
+            },
+
+            async setTheme(themeName) {
+                this.state.theme = themeName;
+                try {
+                    await this.apiCall('sys.theme.set', { value: themeName });
+                    this.applyTheme();
+                } catch (e) { console.error(e); }
+            },
+
+            async applyTheme() {
+                try {
+                    const res = await fetch(`/src/ui/themes/${this.state.theme}.json`);
+                    const theme = await res.json();
+                    const root = document.documentElement;
+                    for (const [key, value] of Object.entries(theme)) {
+                        root.style.setProperty(`--${key}`, value);
+                    }
+                } catch (e) { console.error(e); }
+            },
+
+            async setLang(langCode) {
+                this.state.lang = langCode;
+                try {
+                    await this.apiCall('sys.lang.set', { value: langCode });
+                    await this.loadTranslations();
+                    this.applyTranslations();
+                } catch (e) { console.error(e); }
+            },
+
+            switchView(viewId) {
+                this.state.currentView = viewId;
+                document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+                document.getElementById(viewId).classList.add('active');
+                
+                document.querySelectorAll('.nav-item').forEach(item => {
+                    item.classList.toggle('active', item.getAttribute('data-view') === viewId);
+                });
+            },
+
+            async apiCall(command, params = {}) {
+                const response = await fetch(`${API_BASE}/`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        command,
+                        params,
+                        role: this.state.role,
+                        is_pro: this.state.isPro
+                    })
+                });
+                return await response.json();
+            },
+
+            async loadStock() {
+                const filter = document.getElementById('stock-search').value;
+                const res = await this.apiCall('stock.list', { filter });
+                const tbody = document.getElementById('stock-table-body');
+                tbody.innerHTML = '';
+                
+                if (res.status === 'success') {
+                    res.data.forEach(p => {
+                        const row = `<tr>
+                            <td>${p.codigo}</td>
+                            <td>${p.nombre}</td>
+                            <td>${p.categoria}</td>
+                            <td>$${p.precio.toFixed(2)}</td>
+                            <td>${p.es_peso ? p.cantidad.toFixed(3)+' kg' : p.cantidad}</td>
+                            <td>
+                                <button class="btn btn-secondary" style="padding:4px 8px" onclick="app.editProduct('${p.codigo}')">✏️</button>
+                                <button class="btn btn-danger" style="padding:4px 8px" onclick="app.deleteProduct('${p.codigo}')">🗑️</button>
+                            </td>
+                        </tr>`;
+                        tbody.innerHTML += row;
+                    });
+                }
+            },
+
+            showModal(id) { document.getElementById(id).classList.remove('hidden'); },
+            closeModal(id) { document.getElementById(id).classList.add('hidden'); },
+
+            async saveProduct() {
+                const params = {
+                    codigo: document.getElementById('p-code').value,
+                    nombre: document.getElementById('p-name').value,
+                    precio: parseFloat(document.getElementById('p-price').value),
+                    cantidad: parseFloat(document.getElementById('p-qty').value),
+                    categoria: document.getElementById('p-cat').value,
+                    es_peso: document.getElementById('p-weight').checked
+                };
+                const res = await this.apiCall('stock.add', params);
+                if (res.status === 'success') {
+                    this.closeModal('modal-product');
+                    this.loadStock();
+                } else { alert(res.message); }
+            },
+
+            async editProduct(code) {
+                const res = await this.apiCall('stock.get', { codigo: code }); // Note: I need to add stock.get to dispatcher
+                if (res.status === 'success') {
+                    const p = res.data;
+                    document.getElementById('p-code').value = p.codigo;
+                    document.getElementById('p-name').value = p.nombre;
+                    document.getElementById('p-price').value = p.precio;
+                    document.getElementById('p-qty').value = p.cantidad;
+                    document.getElementById('p-cat').value = p.categoria;
+                    document.getElementById('p-weight').checked = p.es_peso;
+                    document.getElementById('modal-title').innerText = "Editar Producto";
+                    this.showModal('modal-product');
+                }
+            },
+
+            async deleteProduct(code) {
+                if (confirm('¿Eliminar este producto?')) {
+                    const res = await this.apiCall('stock.delete', { codigo: code });
+                    if (res.status === 'success') this.loadStock();
+                }
+            },
+
+            async quickAddProduct() {
+                const code = document.getElementById('sale-scan').value;
+                if (code.length < 3) return;
+                const res = await this.apiCall('venta.add', { codigo: code });
+                if (res.status === 'success') {
+                    this.state.cart.push(res.data);
+                    this.renderCart();
+                    document.getElementById('sale-scan').value = '';
+                }
+            },
+
+            renderCart() {
+                const container = document.getElementById('cart-items');
+                container.innerHTML = '';
+                let total = 0;
+                
+                this.state.cart.forEach((item, idx) => {
+                    const subtotal = item.precio * (item.cantidad || 1);
+                    total += subtotal;
+                    container.innerHTML += `
+                        <div style="display:flex; justify-content:space-between; margin-bottom:8px; padding:8px; background:var(--background); border-radius:8px; font-size:0.9rem;">
+                            <span>${item.nombre} x ${item.cantidad || 1}</span>
+                            <span>$${subtotal.toFixed(2)} <button onclick="app.removeFromCart(${idx})" style="border:none; background:none; cursor:pointer; color:var(--error)">🗑️</button></span>
+                        </div>
+                    `;
+                });
+                document.getElementById('cart-total').innerText = `$${total.toFixed(2)}`;
+            },
+
+            removeFromCart(idx) {
+                this.state.cart.splice(idx, 1);
+                this.renderCart();
+            },
+
+            openCheckout() {
+                if (this.state.cart.length === 0) return alert("Carrito vacío");
+                this.showModal('modal-checkout');
+            },
+
+            togglePaymentFields() {
+                const method = document.getElementById('pay-method').value;
+                document.getElementById('cash-fields').classList.toggle('hidden', method !== 'Efectivo');
+                document.getElementById('alias-fields').classList.toggle('hidden', method !== 'Transferencia');
+            },
+
+            calcChange() {
+                const total = parseFloat(document.getElementById('cart-total').innerText.replace('$', ''));
+                const paga = parseFloat(document.getElementById('pay-amount').value || 0);
+                document.getElementById('pay-change').innerText = `$${(paga - total).toFixed(2)}`;
+            },
+
+            async confirmSale() {
+                const params = {
+                    cliente: "Cliente General",
+                    items: this.state.cart.map(i => ({codigo: i.codigo, cantidad: i.cantidad || 1})),
+                    metodo_pago: document.getElementById('pay-method').value,
+                    paga_con: parseFloat(document.getElementById('pay-amount').value || 0),
+                    alias: document.getElementById('pay-alias').value
+                };
+                const res = await this.apiCall('venta.cobrar', params);
+                if (res.status === 'success') {
+                    alert("Venta Exitosa ✅");
+                    this.state.cart = [];
+                    this.renderCart();
+                    this.closeModal('modal-checkout');
+                } else { alert(res.message); }
+            },
+
+            async execCommand(cmdStr) {
+                const input = document.getElementById('cmd-input');
+                const res = await this.apiCall(cmdStr);
+                alert(JSON.stringify(res, null, 2));
+                input.value = '';
+            },
+
+            async exportCSV() {
+                const res = await this.apiCall('sys.export_csv');
+                if (res.status === 'success') {
+                    alert("Archivo exportado: " + res.path);
+                } else { alert(res.message); }
+            }
+        };
+
+        window.onload = () => app.init();
+    </script>
+</body>
+</html>

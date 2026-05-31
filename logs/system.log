@@ -1,0 +1,132 @@
+2026-05-31 19:31:15,160 [INFO] root: Logging system initialized.
+2026-05-31 19:31:15,160 [INFO] Main: 🚀 Iniciando Sistema de Stock y Escaneo...
+2026-05-31 19:31:15,939 [INFO] DatabaseManager: Database initialized at /home/adrian/projects/stock-scan-python/data/stock_pro.db
+2026-05-31 19:31:15,940 [INFO] Main: ✅ Base de datos conectada.
+2026-05-31 19:31:15,940 [INFO] Main: ✅ Servicios del núcleo cargados.
+2026-05-31 19:31:15,940 [INFO] Main: ✅ Command Dispatcher operativo.
+2026-05-31 19:31:15,941 [CRITICAL] Main: ❌ Error fatal durante el arranque: [Errno 98] Address already in use
+Traceback (most recent call last):
+  File "/home/adrian/projects/stock-scan-python/main.py", line 59, in main
+    web_server.start()
+  File "/home/adrian/projects/stock-scan-python/src/ui/web_server.py", line 107, in start
+    self.server = HTTPServer(("0.0.0.0", self.port), handler_class)
+  File "/usr/lib/python3.10/socketserver.py", line 452, in __init__
+    self.server_bind()
+  File "/usr/lib/python3.10/http/server.py", line 137, in server_bind
+    socketserver.TCPServer.server_bind(self)
+  File "/usr/lib/python3.10/socketserver.py", line 466, in server_bind
+    self.socket.bind(self.server_address)
+OSError: [Errno 98] Address already in use
+2026-05-31 19:32:21,422 [INFO] root: Logging system initialized.
+2026-05-31 19:32:21,423 [INFO] Main: 🚀 Iniciando Sistema de Stock y Escaneo...
+2026-05-31 19:32:21,424 [INFO] DatabaseManager: Database initialized at /home/adrian/projects/stock-scan-python/data/stock_pro.db
+2026-05-31 19:32:21,424 [INFO] Main: ✅ Base de datos conectada.
+2026-05-31 19:32:21,424 [INFO] Main: ✅ Servicios del núcleo cargados.
+2026-05-31 19:32:21,424 [INFO] Main: ✅ Command Dispatcher operativo.
+2026-05-31 19:32:21,425 [CRITICAL] Main: ❌ Error fatal durante el arranque: [Errno 98] Address already in use
+Traceback (most recent call last):
+  File "/home/adrian/projects/stock-scan-python/main.py", line 59, in main
+    web_server.start()
+  File "/home/adrian/projects/stock-scan-python/src/ui/web_server.py", line 107, in start
+    self.server = HTTPServer(("0.0.0.0", self.port), handler_class)
+  File "/usr/lib/python3.10/socketserver.py", line 452, in __init__
+    self.server_bind()
+  File "/usr/lib/python3.10/http/server.py", line 137, in server_bind
+    socketserver.TCPServer.server_bind(self)
+  File "/usr/lib/python3.10/socketserver.py", line 466, in server_bind
+    self.socket.bind(self.server_address)
+OSError: [Errno 98] Address already in use
+2026-05-31 19:34:51,924 [INFO] root: Logging system initialized.
+2026-05-31 19:34:51,924 [INFO] Main: 🚀 Iniciando Sistema de Stock y Escaneo...
+2026-05-31 19:34:51,925 [INFO] DatabaseManager: Database initialized at /home/adrian/projects/stock-scan-python/data/stock_pro.db
+2026-05-31 19:34:51,926 [INFO] Main: ✅ Base de datos conectada.
+2026-05-31 19:34:51,926 [INFO] Main: ✅ Servicios del núcleo cargados.
+2026-05-31 19:34:51,926 [INFO] Main: ✅ Command Dispatcher operativo.
+2026-05-31 19:34:51,926 [CRITICAL] Main: ❌ Error fatal durante el arranque: [Errno 98] Address already in use
+Traceback (most recent call last):
+  File "/home/adrian/projects/stock-scan-python/main.py", line 59, in main
+    web_server.start()
+  File "/home/adrian/projects/stock-scan-python/src/ui/web_server.py", line 107, in start
+    self.server = HTTPServer(("0.0.0.0", self.port), handler_class)
+  File "/usr/lib/python3.10/socketserver.py", line 452, in __init__
+    self.server_bind()
+  File "/usr/lib/python3.10/http/server.py", line 137, in server_bind
+    socketserver.TCPServer.server_bind(self)
+  File "/usr/lib/python3.10/socketserver.py", line 466, in server_bind
+    self.socket.bind(self.server_address)
+OSError: [Errno 98] Address already in use
+2026-05-31 19:40:49,711 [INFO] root: Logging system initialized.
+2026-05-31 19:40:49,711 [INFO] Main: 🚀 Iniciando Sistema de Stock y Escaneo...
+2026-05-31 19:40:49,713 [INFO] DatabaseManager: Database initialized at /home/adrian/projects/stock-scan-python/data/stock_pro.db
+2026-05-31 19:40:49,713 [INFO] Main: ✅ Base de datos conectada.
+2026-05-31 19:40:49,714 [INFO] Main: ✅ Servicios del núcleo cargados.
+2026-05-31 19:40:49,714 [INFO] Main: ✅ Command Dispatcher operativo.
+2026-05-31 19:40:49,718 [INFO] root: 🚀 API Server iniciado en puerto 8000
+2026-05-31 19:40:49,718 [INFO] root: 🌐 Servidor API ejecutándose en hilo secundario.
+2026-05-31 19:40:49,718 [INFO] Main: ✅ Servidor Web iniciado en http://localhost:8000
+2026-05-31 19:40:49,719 [INFO] Main: 🌟 SISTEMA COMPLETAMENTE OPERATIVO
+2026-05-31 19:40:49,719 [INFO] Main: Presione Ctrl+C para detener el servidor.
+2026-05-31 20:09:21,109 [INFO] root: Logging system initialized.
+2026-05-31 20:09:21,110 [INFO] Main: 🚀 Iniciando Sistema de Stock y Escaneo...
+2026-05-31 20:09:21,111 [INFO] DatabaseManager: Database initialized at /home/adrian/projects/stock-scan-python/data/stock_pro.db
+2026-05-31 20:09:21,112 [INFO] Main: ✅ Base de datos conectada.
+2026-05-31 20:09:21,112 [INFO] Main: ✅ Servicios del núcleo cargados.
+2026-05-31 20:09:21,112 [INFO] Main: ✅ Command Dispatcher operativo.
+2026-05-31 20:09:21,112 [CRITICAL] Main: ❌ Error fatal durante el arranque: [Errno 98] Address already in use
+Traceback (most recent call last):
+  File "/home/adrian/projects/stock-scan-python/main.py", line 59, in main
+    web_server.start()
+  File "/home/adrian/projects/stock-scan-python/src/ui/web_server.py", line 117, in start
+    self.server = HTTPServer(("0.0.0.0", self.port), handler_class)
+  File "/usr/lib/python3.10/socketserver.py", line 452, in __init__
+    self.server_bind()
+  File "/usr/lib/python3.10/http/server.py", line 137, in server_bind
+    socketserver.TCPServer.server_bind(self)
+  File "/usr/lib/python3.10/socketserver.py", line 466, in server_bind
+    self.socket.bind(self.server_address)
+OSError: [Errno 98] Address already in use
+2026-05-31 20:10:48,195 [INFO] root: Logging system initialized.
+2026-05-31 20:10:48,195 [INFO] Main: 🚀 Iniciando Sistema de Stock y Escaneo...
+2026-05-31 20:10:48,197 [INFO] DatabaseManager: Database initialized at /home/adrian/projects/stock-scan-python/data/stock_pro.db
+2026-05-31 20:10:48,197 [INFO] Main: ✅ Base de datos conectada.
+2026-05-31 20:10:48,197 [INFO] Main: ✅ Servicios del núcleo cargados.
+2026-05-31 20:10:48,197 [INFO] Main: ✅ Command Dispatcher operativo.
+2026-05-31 20:10:48,218 [INFO] root: 🚀 API Server iniciado en puerto 8888
+2026-05-31 20:10:48,218 [INFO] root: 🌐 Servidor API ejecutándose en hilo secundario.
+2026-05-31 20:10:48,218 [INFO] Main: ✅ Servidor Web iniciado en http://localhost:8888
+2026-05-31 20:10:48,218 [INFO] Main: 🌟 SISTEMA COMPLETAMENTE OPERATIVO
+2026-05-31 20:10:48,219 [INFO] Main: Presione Ctrl+C para detener el servidor.
+2026-05-31 20:11:38,634 [INFO] root: GET /api/config
+2026-05-31 20:11:38,635 [INFO] CommandDispatcher: Executing command: sys.info | User: empleado
+2026-05-31 20:11:38,730 [INFO] root: POST /api/execute | Command: stock.list | Role: empleado | Params: {}
+2026-05-31 20:11:38,731 [INFO] CommandDispatcher: Executing command: stock.list | User: empleado
+2026-05-31 20:11:38,733 [INFO] root: Result stock.list: {'status': 'success', 'data': []}
+2026-05-31 20:11:38,800 [INFO] root: POST /api/execute | Command: stock.add | Role: admin | Params: {'code': 'PROD-001', 'name': 'Prueba Curl', 'qty': 10, 'price': 100.0}
+2026-05-31 20:11:38,801 [INFO] root: Result stock.add: {'status': 'error', 'message': 'Permisos insuficientes. Se requiere rol: dueño.'}
+2026-05-31 20:11:38,865 [INFO] root: POST /api/execute | Command: sales.create | Role: empleado | Params: {'items': [{'code': 'PROD-001', 'qty': 1}], 'customer': 'Cliente Curl'}
+2026-05-31 20:11:38,866 [INFO] root: Result sales.create: {'status': 'error', 'message': "Comando 'sales.create' no reconocido."}
+2026-05-31 20:11:38,932 [INFO] root: POST /api/execute | Command: sys.info | Role: admin | Params: {}
+2026-05-31 20:11:38,932 [INFO] root: Result sys.info: {'status': 'error', 'message': 'Permisos insuficientes. Se requiere rol: gratis.'}
+2026-05-31 20:25:19,053 [INFO] root: Logging system initialized.
+2026-05-31 20:25:19,054 [INFO] Main: 🚀 Iniciando Sistema de Stock y Escaneo...
+2026-05-31 20:25:19,055 [INFO] DatabaseManager: Database initialized at /home/adrian/projects/stock-scan-python/data/stock_pro.db
+2026-05-31 20:25:19,055 [INFO] Main: ✅ Base de datos conectada.
+2026-05-31 20:25:19,055 [INFO] Main: ✅ Servicios del núcleo cargados.
+2026-05-31 20:25:19,056 [INFO] Main: ✅ Command Dispatcher operativo.
+2026-05-31 20:25:19,059 [INFO] root: 🚀 API Server iniciado en puerto 8888
+2026-05-31 20:25:19,059 [INFO] root: 🌐 Servidor API ejecutándose en hilo secundario.
+2026-05-31 20:25:19,060 [INFO] Main: ✅ Servidor Web iniciado en http://localhost:8888
+2026-05-31 20:25:19,060 [INFO] Main: 🌟 SISTEMA COMPLETAMENTE OPERATIVO
+2026-05-31 20:25:19,060 [INFO] Main: Presione Ctrl+C para detener el servidor.
+2026-05-31 20:25:26,474 [INFO] root: GET /
+2026-05-31 20:25:26,807 [INFO] root: GET /favicon.ico
+2026-05-31 20:25:26,807 [WARNING] root: 404 Not Found: /favicon.ico
+2026-05-31 20:25:26,841 [INFO] root: GET /api/config
+2026-05-31 20:25:26,842 [INFO] CommandDispatcher: Executing command: sys.info | User: empleado
+2026-05-31 20:25:26,862 [INFO] root: GET /src/ui/lang/es.json
+2026-05-31 20:25:26,862 [WARNING] root: 404 Not Found: /src/ui/lang/es.json
+2026-05-31 20:25:26,874 [INFO] root: GET /src/ui/themes/light.json
+2026-05-31 20:25:26,874 [WARNING] root: 404 Not Found: /src/ui/themes/light.json
+2026-05-31 20:25:26,888 [INFO] root: POST /api/execute | Command: stock.list | Role: empleado | Params: {'filter': ''}
+2026-05-31 20:25:26,888 [INFO] CommandDispatcher: Executing command: stock.list | User: empleado
+2026-05-31 20:25:26,892 [INFO] root: Result stock.list: {'status': 'success', 'data': []}
