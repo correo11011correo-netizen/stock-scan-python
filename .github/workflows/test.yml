@@ -30,4 +30,4 @@ jobs:
           cat logs/server_audit.log
           exit 1
       - name: Run audit
-        run: python3 audit/automated_audit.py
+        run: python3 ./audit/automated_audit.py
