@@ -1,0 +1,19 @@
+name: Test Audit
+on: [push, pull_request]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+      - name: Install dependencies
+        run: pip install requests
+      - name: Start server
+        run: python3 main.py &
+      - name: Wait for server
+        run: sleep 10
+      - name: Run audit
+        run: python3 audit/automated_audit.py
