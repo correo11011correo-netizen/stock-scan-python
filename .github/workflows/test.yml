@@ -16,6 +16,8 @@ jobs:
       - name: Start server in background
         run: |
           nohup python3 main.py > logs/server_audit.log 2>&1 &
+      - name: Debug file structure
+        run: ls -R
       - name: Wait for server to be ready
         run: |
           echo "Esperando a que el servidor inicie..."
@@ -30,4 +32,4 @@ jobs:
           cat logs/server_audit.log
           exit 1
       - name: Run audit
-        run: python3 ./audit/automated_audit.py
+        run: python3 audit/automated_audit.py
