@@ -30,15 +30,18 @@ Sistema profesional de gestión de inventario, ventas y analítica, diseñado pa
 
 ### Requisitos
 - Python 3.10+
-- `pip install requests` (para auditorías)
 
 ### Ejecución
-Para iniciar el sistema en el entorno de desarrollo:
+Para iniciar el sistema en el entorno local:
 ```bash
 python3 main.py
 ```
 
-Accede a la interfaz en `http://localhost:8888`.
+Accede a la interfaz en tu navegador:
+- **Local:** `http://localhost:8889`
+- **Tailscale (Remoto):** `http://<IP_TAILSCALE>:8889`
+
+El servidor escucha en `0.0.0.0` para permitir accesos desde redes externas (VPN/Tailscale).
 
 ## 🛡️ Auditoría
 
@@ -49,4 +52,6 @@ python3 audit/automated_audit.py
 Los reportes se generan automáticamente en `audit/FULL_AUDIT_REPORT.json` y `audit/BUG_LOG.md`.
 
 ## 🤝 Contribución
-Este proyecto sigue convenciones de `Conventional Commits` y requiere que todos los cambios pasen el CI (GitHub Actions) antes de ser integrados en `main`.
+Este proyecto sigue convenciones de `Conventional Commits`.
+**Antes de contribuir, lee las reglas de desarrollo en [GEMINI.md](./GEMINI.md).**
+Todos los cambios deben pasar el CI (GitHub Actions) antes de ser integrados en `main`.

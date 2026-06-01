@@ -189,24 +189,15 @@
 
         /* Responsive */
         @media (max-width: 768px) {
+            #menu-toggle { display: block !important; }
             .sidebar {
-                position: absolute;
+                position: fixed;
                 left: -260px;
                 height: 100%;
+                box-shadow: var(--shadow);
             }
             .sidebar.open { transform: translateX(260px); }
-            .mobile-nav {
-                display: flex;
-                justify-content: space-around;
-                background-color: var(--surface);
-                border-top: 1px solid var(--border);
-                padding: 12px;
-                position: fixed;
-                bottom: 0;
-                width: 100%;
-                z-index: 90;
-            }
-            .main-content { padding-bottom: 80px; }
+            .main-content { padding-top: 60px; }
         }
         .hidden { display: none !important; }
     </style>
@@ -219,12 +210,15 @@
                 <h1>Stock Pro</h1>
             </div>
             <nav class="nav-menu">
-                <div class="nav-item active" onclick="app.switchView('view-stock')" data-view="view-stock">📦 <span data-i18n="menu_stock">Stock</span></div>
-                <div class="nav-item" onclick="app.switchView('view-sales')" data-view="view-sales">🛒 <span data-i18n="menu_sales">Ventas</span></div>
-                <div class="nav-item" onclick="app.switchView('view-reports')" data-view="view-reports">📊 <span data-i18n="menu_reports">Reportes</span></div>
-                <div class="nav-item" onclick="app.switchView('view-settings')" data-view="view-settings">⚙️ <span data-i18n="menu_settings">Ajustes</span></div>
+                <div class="nav-item active" onclick="app.switchView('view-stock'); app.toggleMenu()" data-view="view-stock">📦 <span data-i18n="menu_stock">Stock</span></div>
+                <div class="nav-item" onclick="app.switchView('view-sales'); app.toggleMenu()" data-view="view-sales">🛒 <span data-i18n="menu_sales">Ventas</span></div>
+                <div class="nav-item" onclick="app.switchView('view-reports'); app.toggleMenu()" data-view="view-reports">📊 <span data-i18n="menu_reports">Reportes</span></div>
+                <div class="nav-item" onclick="app.switchView('view-settings'); app.toggleMenu()" data-view="view-settings">⚙️ <span data-i18n="menu_settings">Ajustes</span></div>
             </nav>
         </aside>
+
+        <!-- Botón Hamburguesa -->
+        <button id="menu-toggle" style="position:fixed; top:20px; left:20px; z-index:200; background:var(--primary); color:white; border:none; padding:10px; border-radius:8px; cursor:pointer; display:none;">☰</button>
 
         <main class="main-content">
             <!-- STOCK VIEW -->
@@ -236,8 +230,14 @@
                 
                 <div class="card">
                     <div style="display: flex; gap: 10px; margin-bottom: 20px;">
-                        <input type="text" id="stock-search" class="input" placeholder="Buscar producto o código..." oninput="app.loadStock()">
-                        <button class="btn btn-secondary" onclick="app.loadStock()">🔄</button>
+                        <select id="stock-category-filter" class="input" style="width: 150px;" onchange="app.searchProducts()">
+                            <option value="">Todas</option>
+                            <option value="almacen">Almacén</option>
+                            <option value="frescos">Frescos</option>
+                            <option value="limpieza">Limpieza</option>
+                            <option value="bebidas">Bebidas</option>
+                        </select>
+                        <input type="text" id="stock-search" class="input" placeholder="Buscar producto o código..." oninput="app.searchProducts()">
                     </div>
                     <div style="overflow-x: auto;">
                         <table class="data-table">
@@ -260,22 +260,30 @@
             <!-- SALES VIEW -->
             <div id="view-sales" class="view">
                 <h2 data-i18n="menu_sales">Terminal de Ventas</h2>
-                <div class="grid">
-                    <div class="card">
-                        <h3>🛒 Carrito</h3>
-                        <div id="cart-items" style="min-height: 200px; margin-bottom: 20px;"></div>
-                        <div style="font-size: 1.5rem; font-weight: 800; text-align: right; margin-bottom: 20px;">
-                            Total: <span id="cart-total">$0.00</span>
-                        </div>
-                        <button class="btn btn-primary" style="width: 100%" onclick="app.openCheckout()">💰 <span data-i18n="btn_pay">Cobrar Venta</span></button>
+                
+                <!-- Flujo Vertical: Categorías -> Búsqueda -> Carrito -> Cobro -->
+                <div class="card">
+                    <h3>Categorías</h3>
+                    <div id="category-grid" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 20px;">
+                        <!-- Categorías generadas por JS -->
                     </div>
-                    <div class="card">
-                        <h3>🔍 Búsqueda Rápida</h3>
-                        <div class="form-group">
-                            <input type="text" id="sale-scan" class="input" placeholder="Escanea código o escribe nombre..." oninput="app.quickAddProduct()">
-                        </div>
-                        <div id="quick-results"></div>
+                </div>
+
+                <div class="card">
+                    <h3>🔍 Búsqueda</h3>
+                    <div class="form-group" style="position: relative;">
+                        <input type="text" id="sale-scan" class="input" placeholder="Escanea código o escribe nombre..." oninput="app.searchInSales()">
+                        <div id="sale-suggestions" style="position: absolute; top: 100%; left: 0; right: 0; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; z-index: 10; max-height: 200px; overflow-y: auto;"></div>
                     </div>
+                </div>
+
+                <div class="card">
+                    <h3>🛒 Carrito</h3>
+                    <div id="cart-items" style="min-height: 100px; margin-bottom: 20px;"></div>
+                    <div style="font-size: 1.5rem; font-weight: 800; text-align: right; margin-bottom: 20px;">
+                        Total: <span id="cart-total">$0.00</span>
+                    </div>
+                    <button class="btn btn-primary" style="width: 100%" onclick="app.openCheckout()">💰 <span data-i18n="btn_pay">Cobrar Venta</span></button>
                 </div>
             </div>
 
@@ -316,8 +324,18 @@
                     </div>
                 </div>
                 <div class="card">
-                    <h3>Administración</h3>
-                    <button class="btn btn-secondary" onclick="app.exportCSV()">📄 Exportar Inventario CSV</button>
+                    <h3>Sesión y Licencia</h3>
+                    <div class="form-group">
+                        <label>Rol</label>
+                        <select id="role-select" class="input" onchange="app.setRole(this.value)">
+                            <option value="empleado">Empleado</option>
+                            <option value="admin">Dueño (Admin)</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="display:flex; align-items:center; gap:10px;">
+                        <input type="checkbox" id="pro-mode" onchange="app.setPro(this.checked)">
+                        <label style="margin:0">Modo PRO (Premium)</label>
+                    </div>
                 </div>
             </div>
         </main>
@@ -394,15 +412,16 @@
     </div>
 
     <script>
-        const API_BASE = 'http://localhost:8888/api';
+        const API_BASE = '/api';
         
         const app = {
             state: {
                 currentView: 'view-stock',
-                role: 'empleado',
-                isPro: false,
+                role: 'admin',
+                isPro: true,
                 theme: 'light',
                 lang: 'es',
+                cartId: null,
                 cart: [],
                 translations: {}
             },
@@ -412,8 +431,94 @@
                 await this.loadTranslations();
                 this.applyTheme();
                 this.applyTranslations();
+                
+                // Inicializar controles
+                document.getElementById('role-select').value = this.state.role;
+                document.getElementById('pro-mode').checked = this.state.isPro;
+                
+                // Evento menú
+                document.getElementById('menu-toggle').addEventListener('click', this.toggleMenu);
+                
+                // Renderizar categorías
+                this.renderCategories();
+                
+                await this.ensureCart();
                 this.loadStock();
                 this.switchView('view-stock');
+            },
+
+            renderCategories() {
+                const categories = [
+                    { name: 'almacen', icon: '<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M7 3v18M17 3v18M3 9h18M3 15h18"/></svg>' },
+                    { name: 'frescos', icon: '<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a7 7 0 0 1 7 7c0 5.25-7 13-7 13S5 14.25 5 9a7 7 0 0 1 7-7z"/><circle cx="12" cy="9" r="2"/></svg>' },
+                    { name: 'limpieza', icon: '<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20h16M12 15l4-4M12 15l-4-4M12 2v13"/></svg>' },
+                    { name: 'bebidas', icon: '<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 2v20M14 2v20M8 2h8v4H8zM8 20h8v2H8z"/></svg>' }
+                ];
+                const grid = document.getElementById('category-grid');
+                grid.innerHTML = categories.map(c => `
+                    <button class="btn btn-secondary" style="flex-direction: column; padding: 10px; height: auto;" onclick="app.filterByCategory('${c.name}')">
+                        <div style="pointer-events: none;">${c.icon}</div>
+                        <span style="font-size: 0.7rem; margin-top: 5px; text-transform: capitalize; pointer-events: none;">${c.name}</span>
+                    </button>
+                `).join('');
+            },
+
+            async filterByCategory(category) {
+                // Limpiar búsqueda manual
+                document.getElementById('sale-scan').value = '';
+                
+                console.log("DEBUG: Consultando categoría:", category);
+                
+                // Consultar stock por categoría
+                const res = await this.apiCall('stock.search', { category: category });
+                console.log("DEBUG: Respuesta API:", res);
+                const container = document.getElementById('sale-suggestions');
+                container.innerHTML = '';
+                
+                if (res.status === 'success') {
+                    if (res.data.length === 0) {
+                        container.innerHTML = '<div style="padding: 10px; color: var(--text-muted);">Sin productos en esta categoría.</div>';
+                    } else {
+                        res.data.forEach(p => {
+                            const div = document.createElement('div');
+                            div.style.padding = '10px';
+                            div.style.borderBottom = '1px solid var(--border)';
+                            div.style.display = 'flex';
+                            div.style.justifyContent = 'space-between';
+                            div.style.alignItems = 'center';
+                            div.innerHTML = `
+                                <span><strong>${p.nombre}</strong> - $${p.precio.toFixed(2)}</span>
+                                <button class="btn btn-primary" style="padding:4px 8px; font-size:0.8rem" onclick='app.addFromSuggestion(${JSON.stringify(p).replace(/'/g, "\\'")})'>+</button>
+                            `;
+                            container.appendChild(div);
+                        });
+                    }
+                } else {
+                    container.innerHTML = `<div style="padding: 10px; color: var(--error);">Error: ${res.message}</div>`;
+                }
+            },
+            
+            toggleMenu() {
+                document.getElementById('sidebar').classList.toggle('open');
+            },
+
+            async ensureCart() {
+                try {
+                    const res = await this.apiCall('cart.get_active');
+                    if (res.status === 'success') {
+                        this.state.cartId = res.cart_id;
+                        await this.refreshCart();
+                    }
+                } catch (e) { console.error("Error ensuring cart", e); }
+            },
+
+            async refreshCart() {
+                if (!this.state.cartId) await this.ensureCart();
+                const res = await this.apiCall('cart.get', { cart_id: this.state.cartId });
+                if (res.status === 'success') {
+                    this.state.cart = res.data;
+                    this.renderCart();
+                }
             },
 
             async loadConfig() {
@@ -429,15 +534,37 @@
             async loadTranslations() {
                 try {
                     const res = await fetch(`/src/ui/lang/${this.state.lang}.json`);
+                    if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
                     this.state.translations = await res.json();
-                } catch (e) { console.error("Lang load error", e); }
+                    console.log("Traducciones cargadas:", this.state.translations);
+                } catch (e) { 
+                    console.error("Lang load error", e); 
+                    // Fallback a español si falla
+                    this.state.lang = 'es';
+                }
             },
 
             applyTranslations() {
+                console.log("Aplicando traducciones...");
                 document.querySelectorAll('[data-i18n]').forEach(el => {
                     const key = el.getAttribute('data-i18n');
-                    el.innerText = this.state.translations[key] || key;
+                    const translation = this.state.translations[key];
+                    if (translation) {
+                        el.innerText = translation;
+                    } else {
+                        console.warn(`Traducción no encontrada para: ${key}`);
+                    }
                 });
+            },
+
+            async setRole(role) {
+                this.state.role = role;
+                console.log("Rol actualizado a:", role);
+            },
+
+            async setPro(isPro) {
+                this.state.isPro = isPro;
+                console.log("Modo Pro actualizado a:", isPro);
             },
 
             async setTheme(themeName) {
@@ -492,9 +619,42 @@
                 return await response.json();
             },
 
+            async searchProducts() {
+                const query = document.getElementById('stock-search').value;
+                const category = document.getElementById('stock-category-filter').value;
+                
+                // Si la búsqueda es muy corta, preferimos listar todo o limpiar
+                if (query.length < 2 && !category) {
+                    return this.loadStock();
+                }
+
+                const res = await this.apiCall('stock.search', { query, category });
+                const tbody = document.getElementById('stock-table-body');
+                tbody.innerHTML = '';
+                
+                if (res.status === 'success') {
+                    res.data.forEach(p => {
+                        const row = `<tr>
+                            <td>${p.codigo}</td>
+                            <td>${p.nombre}</td>
+                            <td>${p.categoria}</td>
+                            <td>$${p.precio.toFixed(2)}</td>
+                            <td>${p.es_peso ? p.cantidad.toFixed(3)+' kg' : p.cantidad}</td>
+                            <td>
+                                <button class="btn btn-secondary" style="padding:4px 8px" onclick="app.editProduct('${p.codigo}')">✏️</button>
+                                <button class="btn btn-danger" style="padding:4px 8px" onclick="app.deleteProduct('${p.codigo}')">🗑️</button>
+                            </td>
+                        </tr>`;
+                        tbody.innerHTML += row;
+                    });
+                }
+            },
+
             async loadStock() {
-                const filter = document.getElementById('stock-search').value;
-                const res = await this.apiCall('stock.list', { filter });
+                // Mantenemos loadStock como alias de buscar todo
+                document.getElementById('stock-search').value = '';
+                document.getElementById('stock-category-filter').value = '';
+                const res = await this.apiCall('stock.list', {});
                 const tbody = document.getElementById('stock-table-body');
                 tbody.innerHTML = '';
                 
@@ -554,6 +714,45 @@
                 if (confirm('¿Eliminar este producto?')) {
                     const res = await this.apiCall('stock.delete', { codigo: code });
                     if (res.status === 'success') this.loadStock();
+                }
+            },
+
+            async searchInSales() {
+                const query = document.getElementById('sale-scan').value;
+                const container = document.getElementById('sale-suggestions');
+                
+                if (query.length < 2) {
+                    container.innerHTML = '';
+                    return;
+                }
+
+                const res = await this.apiCall('stock.search', { query });
+                container.innerHTML = '';
+                
+                if (res.status === 'success') {
+                    res.data.forEach(p => {
+                        const div = document.createElement('div');
+                        div.style.padding = '10px';
+                        div.style.cursor = 'pointer';
+                        div.style.borderBottom = '1px solid var(--border)';
+                        div.innerHTML = `<strong>${p.nombre}</strong> - $${p.precio.toFixed(2)}`;
+                        div.onclick = () => this.addFromSuggestion(p);
+                        container.appendChild(div);
+                    });
+                }
+            },
+
+            async addFromSuggestion(product) {
+                // Añadir al carrito (usamos el método existente si es aplicable, o simulamos)
+                // Dado que quickAddProduct usa venta.add, usaremos venta.add para consistencia
+                const res = await this.apiCall('venta.add', { codigo: product.codigo });
+                if (res.status === 'success') {
+                    this.state.cart.push(res.data);
+                    this.renderCart();
+                    document.getElementById('sale-scan').value = '';
+                    document.getElementById('sale-suggestions').innerHTML = '';
+                } else {
+                    alert(res.message);
                 }
             },
 

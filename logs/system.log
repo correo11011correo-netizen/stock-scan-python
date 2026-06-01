@@ -1,15 +1,30 @@
-2026-05-31 19:31:15,160 [INFO] root: Logging system initialized.
-2026-05-31 19:31:15,160 [INFO] Main: 🚀 Iniciando Sistema de Stock y Escaneo...
-2026-05-31 19:31:15,939 [INFO] DatabaseManager: Database initialized at /home/adrian/projects/stock-scan-python/data/stock_pro.db
-2026-05-31 19:31:15,940 [INFO] Main: ✅ Base de datos conectada.
-2026-05-31 19:31:15,940 [INFO] Main: ✅ Servicios del núcleo cargados.
-2026-05-31 19:31:15,940 [INFO] Main: ✅ Command Dispatcher operativo.
-2026-05-31 19:31:15,941 [CRITICAL] Main: ❌ Error fatal durante el arranque: [Errno 98] Address already in use
+2026-06-01 10:18:13,483 [INFO] root: Logging system initialized.
+2026-06-01 10:18:13,483 [INFO] Main: 🚀 Iniciando Sistema de Stock y Escaneo...
+2026-06-01 10:18:13,484 [INFO] DatabaseManager: Database initialized at stock_pro.db
+2026-06-01 10:18:13,484 [INFO] Main: ✅ Base de datos conectada.
+2026-06-01 10:18:13,485 [INFO] Main: ✅ Servicios del núcleo cargados.
+2026-06-01 10:18:13,485 [INFO] Main: ✅ Command Dispatcher operativo.
+2026-06-01 10:18:13,485 [INFO] Main: DEBUG: WebServer importado desde: /home/adrian/projects/stock-scan-python/src/ui/web_server.py
+2026-06-01 10:18:13,485 [INFO] root: Intentando binding en ('127.0.0.1', 8889)
+2026-06-01 10:18:13,488 [INFO] root: Binding exitoso en puerto 8889
+2026-06-01 10:18:13,488 [INFO] root: 🚀 API Server iniciado en puerto 8889
+2026-06-01 10:18:13,489 [INFO] root: 🌐 Servidor API ejecutándose en hilo secundario (puerto 8889).
+2026-06-01 10:18:13,489 [INFO] Main: ✅ Servidor Web iniciado en http://localhost:8889
+2026-06-01 10:18:13,489 [INFO] Main: 🌟 SISTEMA COMPLETAMENTE OPERATIVO
+2026-06-01 10:18:13,489 [INFO] Main: Presione Ctrl+C para detener el servidor.
+2026-06-01 18:42:13,332 [INFO] root: Logging system initialized.
+2026-06-01 18:42:13,332 [INFO] Main: 🚀 Iniciando Sistema de Stock y Escaneo...
+2026-06-01 18:42:13,333 [INFO] DatabaseManager: Database initialized at /home/adrian/projects/stock-scan-python/data/stock_pro.db
+2026-06-01 18:42:13,333 [INFO] Main: ✅ Base de datos conectada.
+2026-06-01 18:42:13,333 [INFO] Main: ✅ Servicios del núcleo cargados.
+2026-06-01 18:42:13,334 [INFO] Main: ✅ Command Dispatcher operativo.
+2026-06-01 18:42:13,334 [INFO] Main: DEBUG: WebServer importado desde: /home/adrian/projects/stock-scan-python/src/ui/web_server.py
+2026-06-01 18:42:13,334 [CRITICAL] Main: ❌ Error fatal durante el arranque: [Errno 98] Address already in use
 Traceback (most recent call last):
-  File "/home/adrian/projects/stock-scan-python/main.py", line 59, in main
+  File "/home/adrian/projects/stock-scan-python/main.py", line 61, in main
     web_server.start()
-  File "/home/adrian/projects/stock-scan-python/src/ui/web_server.py", line 107, in start
-    self.server = HTTPServer(("0.0.0.0", self.port), handler_class)
+  File "/home/adrian/projects/stock-scan-python/src/ui/web_server.py", line 132, in start
+    self.server = HTTPServer(("0.0.0.0", self.port), WebAPIHandler)
   File "/usr/lib/python3.10/socketserver.py", line 452, in __init__
     self.server_bind()
   File "/usr/lib/python3.10/http/server.py", line 137, in server_bind
@@ -17,116 +32,78 @@ Traceback (most recent call last):
   File "/usr/lib/python3.10/socketserver.py", line 466, in server_bind
     self.socket.bind(self.server_address)
 OSError: [Errno 98] Address already in use
-2026-05-31 19:32:21,422 [INFO] root: Logging system initialized.
-2026-05-31 19:32:21,423 [INFO] Main: 🚀 Iniciando Sistema de Stock y Escaneo...
-2026-05-31 19:32:21,424 [INFO] DatabaseManager: Database initialized at /home/adrian/projects/stock-scan-python/data/stock_pro.db
-2026-05-31 19:32:21,424 [INFO] Main: ✅ Base de datos conectada.
-2026-05-31 19:32:21,424 [INFO] Main: ✅ Servicios del núcleo cargados.
-2026-05-31 19:32:21,424 [INFO] Main: ✅ Command Dispatcher operativo.
-2026-05-31 19:32:21,425 [CRITICAL] Main: ❌ Error fatal durante el arranque: [Errno 98] Address already in use
-Traceback (most recent call last):
-  File "/home/adrian/projects/stock-scan-python/main.py", line 59, in main
-    web_server.start()
-  File "/home/adrian/projects/stock-scan-python/src/ui/web_server.py", line 107, in start
-    self.server = HTTPServer(("0.0.0.0", self.port), handler_class)
-  File "/usr/lib/python3.10/socketserver.py", line 452, in __init__
-    self.server_bind()
-  File "/usr/lib/python3.10/http/server.py", line 137, in server_bind
-    socketserver.TCPServer.server_bind(self)
-  File "/usr/lib/python3.10/socketserver.py", line 466, in server_bind
-    self.socket.bind(self.server_address)
-OSError: [Errno 98] Address already in use
-2026-05-31 19:34:51,924 [INFO] root: Logging system initialized.
-2026-05-31 19:34:51,924 [INFO] Main: 🚀 Iniciando Sistema de Stock y Escaneo...
-2026-05-31 19:34:51,925 [INFO] DatabaseManager: Database initialized at /home/adrian/projects/stock-scan-python/data/stock_pro.db
-2026-05-31 19:34:51,926 [INFO] Main: ✅ Base de datos conectada.
-2026-05-31 19:34:51,926 [INFO] Main: ✅ Servicios del núcleo cargados.
-2026-05-31 19:34:51,926 [INFO] Main: ✅ Command Dispatcher operativo.
-2026-05-31 19:34:51,926 [CRITICAL] Main: ❌ Error fatal durante el arranque: [Errno 98] Address already in use
-Traceback (most recent call last):
-  File "/home/adrian/projects/stock-scan-python/main.py", line 59, in main
-    web_server.start()
-  File "/home/adrian/projects/stock-scan-python/src/ui/web_server.py", line 107, in start
-    self.server = HTTPServer(("0.0.0.0", self.port), handler_class)
-  File "/usr/lib/python3.10/socketserver.py", line 452, in __init__
-    self.server_bind()
-  File "/usr/lib/python3.10/http/server.py", line 137, in server_bind
-    socketserver.TCPServer.server_bind(self)
-  File "/usr/lib/python3.10/socketserver.py", line 466, in server_bind
-    self.socket.bind(self.server_address)
-OSError: [Errno 98] Address already in use
-2026-05-31 19:40:49,711 [INFO] root: Logging system initialized.
-2026-05-31 19:40:49,711 [INFO] Main: 🚀 Iniciando Sistema de Stock y Escaneo...
-2026-05-31 19:40:49,713 [INFO] DatabaseManager: Database initialized at /home/adrian/projects/stock-scan-python/data/stock_pro.db
-2026-05-31 19:40:49,713 [INFO] Main: ✅ Base de datos conectada.
-2026-05-31 19:40:49,714 [INFO] Main: ✅ Servicios del núcleo cargados.
-2026-05-31 19:40:49,714 [INFO] Main: ✅ Command Dispatcher operativo.
-2026-05-31 19:40:49,718 [INFO] root: 🚀 API Server iniciado en puerto 8000
-2026-05-31 19:40:49,718 [INFO] root: 🌐 Servidor API ejecutándose en hilo secundario.
-2026-05-31 19:40:49,718 [INFO] Main: ✅ Servidor Web iniciado en http://localhost:8000
-2026-05-31 19:40:49,719 [INFO] Main: 🌟 SISTEMA COMPLETAMENTE OPERATIVO
-2026-05-31 19:40:49,719 [INFO] Main: Presione Ctrl+C para detener el servidor.
-2026-05-31 20:09:21,109 [INFO] root: Logging system initialized.
-2026-05-31 20:09:21,110 [INFO] Main: 🚀 Iniciando Sistema de Stock y Escaneo...
-2026-05-31 20:09:21,111 [INFO] DatabaseManager: Database initialized at /home/adrian/projects/stock-scan-python/data/stock_pro.db
-2026-05-31 20:09:21,112 [INFO] Main: ✅ Base de datos conectada.
-2026-05-31 20:09:21,112 [INFO] Main: ✅ Servicios del núcleo cargados.
-2026-05-31 20:09:21,112 [INFO] Main: ✅ Command Dispatcher operativo.
-2026-05-31 20:09:21,112 [CRITICAL] Main: ❌ Error fatal durante el arranque: [Errno 98] Address already in use
-Traceback (most recent call last):
-  File "/home/adrian/projects/stock-scan-python/main.py", line 59, in main
-    web_server.start()
-  File "/home/adrian/projects/stock-scan-python/src/ui/web_server.py", line 117, in start
-    self.server = HTTPServer(("0.0.0.0", self.port), handler_class)
-  File "/usr/lib/python3.10/socketserver.py", line 452, in __init__
-    self.server_bind()
-  File "/usr/lib/python3.10/http/server.py", line 137, in server_bind
-    socketserver.TCPServer.server_bind(self)
-  File "/usr/lib/python3.10/socketserver.py", line 466, in server_bind
-    self.socket.bind(self.server_address)
-OSError: [Errno 98] Address already in use
-2026-05-31 20:10:48,195 [INFO] root: Logging system initialized.
-2026-05-31 20:10:48,195 [INFO] Main: 🚀 Iniciando Sistema de Stock y Escaneo...
-2026-05-31 20:10:48,197 [INFO] DatabaseManager: Database initialized at /home/adrian/projects/stock-scan-python/data/stock_pro.db
-2026-05-31 20:10:48,197 [INFO] Main: ✅ Base de datos conectada.
-2026-05-31 20:10:48,197 [INFO] Main: ✅ Servicios del núcleo cargados.
-2026-05-31 20:10:48,197 [INFO] Main: ✅ Command Dispatcher operativo.
-2026-05-31 20:10:48,218 [INFO] root: 🚀 API Server iniciado en puerto 8888
-2026-05-31 20:10:48,218 [INFO] root: 🌐 Servidor API ejecutándose en hilo secundario.
-2026-05-31 20:10:48,218 [INFO] Main: ✅ Servidor Web iniciado en http://localhost:8888
-2026-05-31 20:10:48,218 [INFO] Main: 🌟 SISTEMA COMPLETAMENTE OPERATIVO
-2026-05-31 20:10:48,219 [INFO] Main: Presione Ctrl+C para detener el servidor.
-2026-05-31 20:11:38,634 [INFO] root: GET /api/config
-2026-05-31 20:11:38,635 [INFO] CommandDispatcher: Executing command: sys.info | User: empleado
-2026-05-31 20:11:38,730 [INFO] root: POST /api/execute | Command: stock.list | Role: empleado | Params: {}
-2026-05-31 20:11:38,731 [INFO] CommandDispatcher: Executing command: stock.list | User: empleado
-2026-05-31 20:11:38,733 [INFO] root: Result stock.list: {'status': 'success', 'data': []}
-2026-05-31 20:11:38,800 [INFO] root: POST /api/execute | Command: stock.add | Role: admin | Params: {'code': 'PROD-001', 'name': 'Prueba Curl', 'qty': 10, 'price': 100.0}
-2026-05-31 20:11:38,801 [INFO] root: Result stock.add: {'status': 'error', 'message': 'Permisos insuficientes. Se requiere rol: dueño.'}
-2026-05-31 20:11:38,865 [INFO] root: POST /api/execute | Command: sales.create | Role: empleado | Params: {'items': [{'code': 'PROD-001', 'qty': 1}], 'customer': 'Cliente Curl'}
-2026-05-31 20:11:38,866 [INFO] root: Result sales.create: {'status': 'error', 'message': "Comando 'sales.create' no reconocido."}
-2026-05-31 20:11:38,932 [INFO] root: POST /api/execute | Command: sys.info | Role: admin | Params: {}
-2026-05-31 20:11:38,932 [INFO] root: Result sys.info: {'status': 'error', 'message': 'Permisos insuficientes. Se requiere rol: gratis.'}
-2026-05-31 20:25:19,053 [INFO] root: Logging system initialized.
-2026-05-31 20:25:19,054 [INFO] Main: 🚀 Iniciando Sistema de Stock y Escaneo...
-2026-05-31 20:25:19,055 [INFO] DatabaseManager: Database initialized at /home/adrian/projects/stock-scan-python/data/stock_pro.db
-2026-05-31 20:25:19,055 [INFO] Main: ✅ Base de datos conectada.
-2026-05-31 20:25:19,055 [INFO] Main: ✅ Servicios del núcleo cargados.
-2026-05-31 20:25:19,056 [INFO] Main: ✅ Command Dispatcher operativo.
-2026-05-31 20:25:19,059 [INFO] root: 🚀 API Server iniciado en puerto 8888
-2026-05-31 20:25:19,059 [INFO] root: 🌐 Servidor API ejecutándose en hilo secundario.
-2026-05-31 20:25:19,060 [INFO] Main: ✅ Servidor Web iniciado en http://localhost:8888
-2026-05-31 20:25:19,060 [INFO] Main: 🌟 SISTEMA COMPLETAMENTE OPERATIVO
-2026-05-31 20:25:19,060 [INFO] Main: Presione Ctrl+C para detener el servidor.
-2026-05-31 20:25:26,474 [INFO] root: GET /
-2026-05-31 20:25:26,807 [INFO] root: GET /favicon.ico
-2026-05-31 20:25:26,807 [WARNING] root: 404 Not Found: /favicon.ico
-2026-05-31 20:25:26,841 [INFO] root: GET /api/config
-2026-05-31 20:25:26,842 [INFO] CommandDispatcher: Executing command: sys.info | User: empleado
-2026-05-31 20:25:26,862 [INFO] root: GET /src/ui/lang/es.json
-2026-05-31 20:25:26,862 [WARNING] root: 404 Not Found: /src/ui/lang/es.json
-2026-05-31 20:25:26,874 [INFO] root: GET /src/ui/themes/light.json
-2026-05-31 20:25:26,874 [WARNING] root: 404 Not Found: /src/ui/themes/light.json
-2026-05-31 20:25:26,888 [INFO] root: POST /api/execute | Command: stock.list | Role: empleado | Params: {'filter': ''}
-2026-05-31 20:25:26,888 [INFO] CommandDispatcher: Executing command: stock.list | User: empleado
-2026-05-31 20:25:26,892 [INFO] root: Result stock.list: {'status': 'success', 'data': []}
+2026-06-01 18:42:31,800 [INFO] root: Logging system initialized.
+2026-06-01 18:42:31,800 [INFO] Main: 🚀 Iniciando Sistema de Stock y Escaneo...
+2026-06-01 18:42:31,801 [INFO] DatabaseManager: Database initialized at /home/adrian/projects/stock-scan-python/data/stock_pro.db
+2026-06-01 18:42:31,801 [INFO] Main: ✅ Base de datos conectada.
+2026-06-01 18:42:31,802 [INFO] Main: ✅ Servicios del núcleo cargados.
+2026-06-01 18:42:31,802 [INFO] Main: ✅ Command Dispatcher operativo.
+2026-06-01 18:42:31,802 [INFO] Main: DEBUG: WebServer importado desde: /home/adrian/projects/stock-scan-python/src/ui/web_server.py
+2026-06-01 18:42:31,805 [INFO] root: 🚀 API Server iniciado en puerto 8889
+2026-06-01 18:42:31,805 [INFO] root: 🌐 Servidor API ejecutándose en puerto 8889.
+2026-06-01 18:42:31,805 [INFO] Main: ✅ Servidor Web iniciado en http://localhost:8889
+2026-06-01 18:42:31,805 [INFO] Main: 🌟 SISTEMA COMPLETAMENTE OPERATIVO
+2026-06-01 18:42:31,805 [INFO] Main: Presione Ctrl+C para detener el servidor.
+2026-06-01 18:42:36,693 [INFO] root: POST /api/execute | Command: stock.search | Role: empleado | Params: {'category': 'almacen'}
+2026-06-01 18:42:36,693 [INFO] CommandDispatcher: Executing command: stock.search | User: empleado
+2026-06-01 18:42:36,694 [INFO] root: Result stock.search: {'status': 'success', 'data': [{'codigo': 'A01', 'nombre': 'Arroz', 'precio': 1.0, 'cantidad': 50.0, 'categoria': 'almacen', 'es_peso': 0, 'last_updated': '2026-06-01 21:31:02'}, {'codigo': 'A03', 'nombre': 'Azúcar', 'precio': 0.9, 'cantidad': 30.0, 'categoria': 'almacen', 'es_peso': 0, 'last_updated': '2026-06-01 21:31:02'}, {'codigo': 'A02', 'nombre': 'Fideos', 'precio': 0.8, 'cantidad': 40.0, 'categoria': 'almacen', 'es_peso': 0, 'last_updated': '2026-06-01 21:31:02'}]}
+2026-06-01 18:42:55,001 [INFO] root: GET /
+2026-06-01 18:42:55,020 [ERROR] root: Error sirviendo archivo /home/adrian/projects/stock-scan-python/src/ui/index.html: [Errno 5] Input/output error
+2026-06-01 19:13:18,311 [INFO] root: Logging system initialized.
+2026-06-01 19:13:18,312 [INFO] Main: 🚀 Iniciando Sistema de Stock y Escaneo...
+2026-06-01 19:13:18,349 [INFO] DatabaseManager: Database initialized at /home/adrian/projects/stock-scan-python/data/stock_pro.db
+2026-06-01 19:13:18,350 [INFO] Main: ✅ Base de datos conectada.
+2026-06-01 19:13:18,350 [INFO] Main: ✅ Servicios del núcleo cargados.
+2026-06-01 19:13:18,350 [INFO] Main: ✅ Command Dispatcher operativo.
+2026-06-01 19:13:18,350 [INFO] Main: DEBUG: WebServer importado desde: /home/adrian/projects/stock-scan-python/src/ui/web_server.py
+2026-06-01 19:13:18,353 [INFO] root: 🚀 API Server iniciado en puerto 8889
+2026-06-01 19:13:18,354 [INFO] root: 🌐 Servidor API ejecutándose en puerto 8889.
+2026-06-01 19:13:18,354 [INFO] Main: ✅ Servidor Web iniciado en http://localhost:8889
+2026-06-01 19:13:18,354 [INFO] Main: 🌟 SISTEMA COMPLETAMENTE OPERATIVO
+2026-06-01 19:13:18,354 [INFO] Main: Presione Ctrl+C para detener el servidor.
+2026-06-01 19:17:05,862 [INFO] root: GET /
+2026-06-01 19:17:05,913 [INFO] root: Intentando abrir archivo: /home/adrian/projects/stock-scan-python/src/ui/index.html
+2026-06-01 19:17:06,101 [INFO] root: GET /favicon.ico
+2026-06-01 19:17:06,102 [WARNING] root: 404 Not Found: /favicon.ico
+2026-06-01 19:17:06,142 [INFO] root: GET /api/config
+2026-06-01 19:17:06,143 [INFO] CommandDispatcher: Executing command: sys.info | User: empleado
+2026-06-01 19:17:06,177 [INFO] root: GET /src/ui/lang/es.json
+2026-06-01 19:17:06,177 [INFO] root: Intentando abrir archivo: /home/adrian/projects/stock-scan-python/src/ui/lang/es.json
+2026-06-01 19:17:06,187 [INFO] root: GET /src/ui/themes/light.json
+2026-06-01 19:17:06,188 [INFO] root: Intentando abrir archivo: /home/adrian/projects/stock-scan-python/src/ui/themes/light.json
+2026-06-01 19:17:06,202 [INFO] root: POST /api/execute | Command: cart.get_active | Role: admin | Params: {}
+2026-06-01 19:17:06,202 [INFO] root: Result cart.get_active: {'status': 'error', 'message': "Comando 'cart.get_active' no reconocido."}
+2026-06-01 19:17:06,217 [INFO] root: POST /api/execute | Command: stock.list | Role: admin | Params: {}
+2026-06-01 19:17:06,217 [INFO] CommandDispatcher: Executing command: stock.list | User: admin
+2026-06-01 19:17:06,234 [INFO] root: Result stock.list: {'status': 'success', 'data': [{'codigo': 'B03', 'nombre': 'Agua', 'precio': 0.7, 'cantidad': 60.0, 'categoria': 'bebidas', 'es_peso': 0, 'last_updated': '2026-06-01 21:31:02'}, {'codigo': 'A01', 'nombre': 'Arroz', 'precio': 1.0, 'cantidad': 50.0, 'categoria': 'almacen', 'es_peso': 0, 'last_updated': '2026-06-01 21:31:02'}, {'codigo': 'A03', 'nombre': 'Azúcar', 'precio': 0.9, 'cantidad': 30.0, 'categoria': 'almacen', 'es_peso': 0, 'last_updated': '2026-06-01 21:31:02'}, {'codigo': 'F02', 'nombre': 'Banana', 'precio': 0.4, 'cantidad': 100.0, 'categoria': 'frescos', 'es_peso': 1, 'last_updated': '2026-06-01 21:31:02'}, {'codigo': 'L02', 'nombre': 'Detergente', 'precio': 2.5, 'cantidad': 15.0, 'categoria': 'limpieza', 'es_peso': 0, 'last_updated': '2026-06-01 21:31:02'}, {'codigo': 'A02', 'nombre': 'Fideos', 'precio': 0.8, 'cantidad': 40.0, 'categoria': 'almacen', 'es_peso': 0, 'last_updated': '2026-06-01 21:31:02'}, {'codigo': 'L01', 'nombre': 'Jabón', 'precio': 2.0, 'cantidad': 20.0, 'categoria': 'limpieza', 'es_peso': 0, 'last_updated': '2026-06-01 21:31:02'}, {'codigo': 'B02', 'nombre': 'Jugo', 'precio': 2.0, 'cantidad': 30.0, 'categoria': 'bebidas', 'es_peso': 0, 'last_updated': '2026-06-01 21:31:02'}, {'codigo': 'L03', 'nombre': 'Lavandina', 'precio': 1.5, 'cantidad': 25.0, 'categoria': 'limpieza', 'es_peso': 0, 'last_updated': '2026-06-01 21:31:02'}, {'codigo': 'B01', 'nombre': 'Leche', 'precio': 1.5, 'cantidad': 40.0, 'categoria': 'bebidas', 'es_peso': 0, 'last_updated': '2026-06-01 21:31:02'}, {'codigo': 'F01', 'nombre': 'Manzana', 'precio': 0.5, 'cantidad': 100.0, 'categoria': 'frescos', 'es_peso': 1, 'last_updated': '2026-06-01 21:31:02'}, {'codigo': 'F03', 'nombre': 'Tomate', 'precio': 1.2, 'cantidad': 60.0, 'categoria': 'frescos', 'es_peso': 1, 'last_updated': '2026-06-01 21:31:02'}]}
+2026-06-01 19:17:09,765 [INFO] root: POST /api/execute | Command: stock.search | Role: admin | Params: {'category': 'almacen'}
+2026-06-01 19:17:09,768 [INFO] CommandDispatcher: Executing command: stock.search | User: admin
+2026-06-01 19:17:09,770 [INFO] root: Result stock.search: {'status': 'success', 'data': [{'codigo': 'A01', 'nombre': 'Arroz', 'precio': 1.0, 'cantidad': 50.0, 'categoria': 'almacen', 'es_peso': 0, 'last_updated': '2026-06-01 21:31:02'}, {'codigo': 'A03', 'nombre': 'Azúcar', 'precio': 0.9, 'cantidad': 30.0, 'categoria': 'almacen', 'es_peso': 0, 'last_updated': '2026-06-01 21:31:02'}, {'codigo': 'A02', 'nombre': 'Fideos', 'precio': 0.8, 'cantidad': 40.0, 'categoria': 'almacen', 'es_peso': 0, 'last_updated': '2026-06-01 21:31:02'}]}
+2026-06-01 19:17:12,531 [INFO] root: POST /api/execute | Command: stock.search | Role: admin | Params: {'category': 'frescos'}
+2026-06-01 19:17:12,532 [INFO] CommandDispatcher: Executing command: stock.search | User: admin
+2026-06-01 19:17:12,533 [INFO] root: Result stock.search: {'status': 'success', 'data': [{'codigo': 'F02', 'nombre': 'Banana', 'precio': 0.4, 'cantidad': 100.0, 'categoria': 'frescos', 'es_peso': 1, 'last_updated': '2026-06-01 21:31:02'}, {'codigo': 'F01', 'nombre': 'Manzana', 'precio': 0.5, 'cantidad': 100.0, 'categoria': 'frescos', 'es_peso': 1, 'last_updated': '2026-06-01 21:31:02'}, {'codigo': 'F03', 'nombre': 'Tomate', 'precio': 1.2, 'cantidad': 60.0, 'categoria': 'frescos', 'es_peso': 1, 'last_updated': '2026-06-01 21:31:02'}]}
+2026-06-01 19:17:14,130 [INFO] root: POST /api/execute | Command: stock.search | Role: admin | Params: {'category': 'limpieza'}
+2026-06-01 19:17:14,131 [INFO] CommandDispatcher: Executing command: stock.search | User: admin
+2026-06-01 19:17:14,132 [INFO] root: Result stock.search: {'status': 'success', 'data': [{'codigo': 'L02', 'nombre': 'Detergente', 'precio': 2.5, 'cantidad': 15.0, 'categoria': 'limpieza', 'es_peso': 0, 'last_updated': '2026-06-01 21:31:02'}, {'codigo': 'L01', 'nombre': 'Jabón', 'precio': 2.0, 'cantidad': 20.0, 'categoria': 'limpieza', 'es_peso': 0, 'last_updated': '2026-06-01 21:31:02'}, {'codigo': 'L03', 'nombre': 'Lavandina', 'precio': 1.5, 'cantidad': 25.0, 'categoria': 'limpieza', 'es_peso': 0, 'last_updated': '2026-06-01 21:31:02'}]}
+2026-06-01 19:17:14,918 [INFO] root: POST /api/execute | Command: stock.search | Role: admin | Params: {'category': 'bebidas'}
+2026-06-01 19:17:14,918 [INFO] CommandDispatcher: Executing command: stock.search | User: admin
+2026-06-01 19:17:14,919 [INFO] root: Result stock.search: {'status': 'success', 'data': [{'codigo': 'B03', 'nombre': 'Agua', 'precio': 0.7, 'cantidad': 60.0, 'categoria': 'bebidas', 'es_peso': 0, 'last_updated': '2026-06-01 21:31:02'}, {'codigo': 'B02', 'nombre': 'Jugo', 'precio': 2.0, 'cantidad': 30.0, 'categoria': 'bebidas', 'es_peso': 0, 'last_updated': '2026-06-01 21:31:02'}, {'codigo': 'B01', 'nombre': 'Leche', 'precio': 1.5, 'cantidad': 40.0, 'categoria': 'bebidas', 'es_peso': 0, 'last_updated': '2026-06-01 21:31:02'}]}
+2026-06-01 19:17:17,818 [INFO] root: POST /api/execute | Command: venta.add | Role: admin | Params: {'codigo': 'B03'}
+2026-06-01 19:17:17,818 [INFO] CommandDispatcher: Executing command: venta.add | User: admin
+2026-06-01 19:17:17,819 [INFO] root: Result venta.add: {'status': 'success', 'data': {'codigo': 'B03', 'nombre': 'Agua', 'precio': 0.7, 'cantidad': 60.0, 'categoria': 'bebidas', 'es_peso': 0, 'last_updated': '2026-06-01 21:31:02'}, 'message': 'Producto agregado al carrito.'}
+2026-06-01 19:17:25,268 [INFO] root: POST /api/execute | Command: stock.search | Role: admin | Params: {'category': 'limpieza'}
+2026-06-01 19:17:25,269 [INFO] CommandDispatcher: Executing command: stock.search | User: admin
+2026-06-01 19:17:25,271 [INFO] root: Result stock.search: {'status': 'success', 'data': [{'codigo': 'L02', 'nombre': 'Detergente', 'precio': 2.5, 'cantidad': 15.0, 'categoria': 'limpieza', 'es_peso': 0, 'last_updated': '2026-06-01 21:31:02'}, {'codigo': 'L01', 'nombre': 'Jabón', 'precio': 2.0, 'cantidad': 20.0, 'categoria': 'limpieza', 'es_peso': 0, 'last_updated': '2026-06-01 21:31:02'}, {'codigo': 'L03', 'nombre': 'Lavandina', 'precio': 1.5, 'cantidad': 25.0, 'categoria': 'limpieza', 'es_peso': 0, 'last_updated': '2026-06-01 21:31:02'}]}
+2026-06-01 19:17:26,109 [INFO] root: POST /api/execute | Command: stock.search | Role: admin | Params: {'category': 'bebidas'}
+2026-06-01 19:17:26,109 [INFO] CommandDispatcher: Executing command: stock.search | User: admin
+2026-06-01 19:17:26,110 [INFO] root: Result stock.search: {'status': 'success', 'data': [{'codigo': 'B03', 'nombre': 'Agua', 'precio': 0.7, 'cantidad': 60.0, 'categoria': 'bebidas', 'es_peso': 0, 'last_updated': '2026-06-01 21:31:02'}, {'codigo': 'B02', 'nombre': 'Jugo', 'precio': 2.0, 'cantidad': 30.0, 'categoria': 'bebidas', 'es_peso': 0, 'last_updated': '2026-06-01 21:31:02'}, {'codigo': 'B01', 'nombre': 'Leche', 'precio': 1.5, 'cantidad': 40.0, 'categoria': 'bebidas', 'es_peso': 0, 'last_updated': '2026-06-01 21:31:02'}]}
+2026-06-01 19:17:32,437 [INFO] root: POST /api/execute | Command: sys.lang.set | Role: admin | Params: {'value': 'en'}
+2026-06-01 19:17:32,437 [INFO] CommandDispatcher: Executing command: sys.lang.set | User: admin
+2026-06-01 19:17:32,519 [INFO] root: Result sys.lang.set: {'status': 'success', 'message': 'Configuración lang actualizada.'}
+2026-06-01 19:17:32,531 [INFO] root: GET /src/ui/lang/en.json
+2026-06-01 19:17:32,531 [INFO] root: Intentando abrir archivo: /home/adrian/projects/stock-scan-python/src/ui/lang/en.json
+2026-06-01 19:17:35,586 [INFO] root: POST /api/execute | Command: sys.theme.set | Role: admin | Params: {'value': 'dark'}
+2026-06-01 19:17:35,586 [INFO] CommandDispatcher: Executing command: sys.theme.set | User: admin
+2026-06-01 19:17:35,669 [INFO] root: Result sys.theme.set: {'status': 'success', 'message': 'Configuración theme actualizada.'}
+2026-06-01 19:17:35,677 [INFO] root: GET /src/ui/themes/dark.json
+2026-06-01 19:17:35,678 [INFO] root: Intentando abrir archivo: /home/adrian/projects/stock-scan-python/src/ui/themes/dark.json

@@ -7,6 +7,7 @@ from src.core.sales_service import SalesService
 from src.core.system_service import SystemService
 from src.commands.dispatcher import CommandDispatcher
 from src.ui.web_server import WebServer
+import inspect
 
 def setup_logging():
     """Configura el sistema de logging profesional."""
@@ -55,9 +56,10 @@ def main():
 
         # 4. Inicializar Interfaz de Usuario (Web Server)
         # El servidor API expone el Dispatcher al Frontend HTML
-        web_server = WebServer(dispatcher=dispatcher, port=8888)
+        logger.info(f"DEBUG: WebServer importado desde: {inspect.getfile(WebServer)}")
+        web_server = WebServer(dispatcher=dispatcher, port=8889)
         web_server.start()
-        logger.info("✅ Servidor Web iniciado en http://localhost:8888")
+        logger.info("✅ Servidor Web iniciado en http://localhost:8889")
 
         logger.info("🌟 SISTEMA COMPLETAMENTE OPERATIVO")
         logger.info("Presione Ctrl+C para detener el servidor.")

@@ -49,6 +49,26 @@ class StockService:
             return {"status": "success", "data": dict(product)}
         return {"status": "error", "message": "Producto no encontrado."}
 
+    def search_products(self, query_text=None, category=None):
+        """
+        Realiza una búsqueda predictiva y filtrada de productos.
+        """
+        query = "SELECT * FROM products WHERE 1=1"
+        params = []
+
+        if query_text:
+            query += " AND (nombre LIKE ? OR codigo LIKE ?)"
+            params.extend([f"%{query_text}%", f"%{query_text}%"])
+        
+        if category:
+            query += " AND categoria = ?"
+            params.append(category)
+            
+        query += " ORDER BY nombre ASC LIMIT 10"
+        
+        products = self.db.fetch_all(query, tuple(params))
+        return {"status": "success", "data": [dict(p) for p in products]}
+
     def list_products(self, filter_text=None, category=None):
         """
         Retorna la lista de productos con filtros opcionales.

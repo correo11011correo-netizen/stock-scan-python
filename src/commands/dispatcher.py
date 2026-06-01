@@ -23,6 +23,7 @@ class CommandDispatcher:
         self.commands_map: Dict[str, tuple] = {
             # --- STOCK ---
             "stock.list": (self._handle_stock_list, "gratis", False),
+            "stock.search": (self._handle_stock_search, "empleado", False),
             "stock.get": (self._handle_stock_get, "gratis", False),
             "stock.add": (self._handle_stock_add, "admin", False),
             "stock.edit": (self._handle_stock_edit, "admin", False),
@@ -99,6 +100,12 @@ class CommandDispatcher:
         
         res = self.stock_service.get_product(codigo)
         return res
+
+    def _handle_stock_search(self, params):
+        return self.stock_service.search_products(
+            query_text=params.get("query"), 
+            category=params.get("category")
+        )
 
     def _handle_stock_list(self, params):
         return self.stock_service.list_products(

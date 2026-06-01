@@ -1,5 +1,6 @@
 import json
 import logging
+import os
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from threading import Thread
 from ..commands.dispatcher import CommandDispatcher
@@ -13,40 +14,61 @@ class WebAPIHandler(BaseHTTPRequestHandler):
     def _set_headers(self, status=200):
         self.send_response(status)
         self.send_header('Content-type', 'application/json')
-        self.send_header('Access-Control-Allow-Origin', '*') # Permitir CORS para desarrollo
+        # Permitir CORS de forma más permisiva para facilitar el acceso vía túnel
+        self.send_header('Access-Control-Allow-Origin', '*')
         self.send_header('Access-Control-Allow-Methods', 'POST, GET, OPTIONS')
-        self.send_header('Access-Control-Allow-Headers', 'Content-Type')
+        self.send_header('Access-Control-Allow-Headers', 'Content-Type, Authorization')
         self.end_headers()
 
     def do_OPTIONS(self):
         """Soporte para pre-flight requests de CORS."""
-        logging.debug(f"OPTIONS {self.path}")
+        logging.info(f"OPTIONS request: {self.path} from {self.address_string()}")
         self._set_headers()
 
     def do_GET(self):
         """
-        Soporta peticiones GET. Sirve el index.html en la raíz y configuraciones en /api/config.
+        Soporta peticiones GET. Sirve el index.html en la raíz, configuraciones en /api/config, 
+        y archivos estáticos desde la carpeta UI.
         """
         logging.info(f"GET {self.path}")
+        ui_dir = os.path.dirname(__file__)
+        
+        # Mapeo de ruta a archivo
         if self.path == '/':
-            try:
-                # Intentamos servir el index.html desde la carpeta ui
-                # Ajustamos la ruta para que sea relativa al servidor
-                import os
-                # Buscamos el archivo index.html en el mismo directorio que este script
-                ui_dir = os.path.dirname(__file__)
-                index_path = os.path.join(ui_dir, "index.html")
+            file_path = os.path.join(ui_dir, "index.html")
+        else:
+            # Eliminar el leading slash
+            rel_path = self.path.lstrip('/')
+            
+            # Si la ruta comienza con 'src/ui/', quitarlo para que apunte a la raíz de la UI
+            if rel_path.startswith('src/ui/'):
+                rel_path = rel_path.replace('src/ui/', '', 1)
                 
-                with open(index_path, 'rb') as f:
-                    self.send_response(200)
-                    self.send_header('Content-type', 'text/html')
-                    self.end_headers()
-                    self.wfile.write(f.read())
+            file_path = os.path.join(ui_dir, rel_path)
+
+        # Verificar si el archivo existe
+        if os.path.exists(file_path) and os.path.isfile(file_path):
+            try:
+                from pathlib import Path
+                logging.info(f"Intentando abrir archivo: {file_path}")
+                import mimetypes
+                mime_type, _ = mimetypes.guess_type(file_path)
+                
+                content = Path(file_path).read_bytes()
+                
+                self.send_response(200)
+                self.send_header('Content-type', mime_type or 'application/octet-stream')
+                self.send_header('Content-Length', len(content))
+                self.end_headers()
+                self.wfile.write(content)
+                return
             except Exception as e:
-                logging.error(f"Error sirviendo index.html: {e}")
-                self.send_error(500, f"Error sirviendo index.html: {e}")
-        elif self.path == '/api/config':
-            # Obtenemos la config desde el system_service vía dispatcher
+                logging.error(f"Error sirviendo archivo {file_path}: {e}")
+                self.send_error(500, f"Error interno: {e}")
+                return
+
+        # Endpoints de API
+        if self.path == '/api/config':
             res = self.dispatcher.execute("sys.info")
             self._set_headers()
             self.wfile.write(json.dumps(res).encode())
@@ -99,22 +121,20 @@ class WebServer:
     """
     Servidor web ligero que corre en un hilo separado.
     """
-    def __init__(self, dispatcher: CommandDispatcher, port=8888):
+    def __init__(self, dispatcher: CommandDispatcher, port=8889):
         self.dispatcher = dispatcher
         self.port = port
         self.server = None
         self.thread = None
 
-    def _create_handler(self):
-        # Creamos un wrapper para inyectar el dispatcher en el handler
-        class HandlerWithDispatcher(WebAPIHandler):
-            dispatcher = self.dispatcher
-        return HandlerWithDispatcher
-
     def start(self):
-        """Inicia el servidor en segundo plano."""
-        handler_class = self._create_handler()
-        self.server = HTTPServer(("0.0.0.0", self.port), handler_class)
+        """Inicia el servidor en 0.0.0.0 para compatibilidad con túneles."""
+        # Configurar el handler directamente
+        WebAPIHandler.dispatcher = self.dispatcher
+        
+        # Iniciar en 0.0.0.0 para asegurar visibilidad al túnel
+        self.server = HTTPServer(("0.0.0.0", self.port), WebAPIHandler)
+        self.server.allow_reuse_address = True
         
         def run():
             logging.info(f"🚀 API Server iniciado en puerto {self.port}")
@@ -122,10 +142,10 @@ class WebServer:
             
         self.thread = Thread(target=run, daemon=True)
         self.thread.start()
-        logging.info("🌐 Servidor API ejecutándose en hilo secundario.")
+        logging.info(f"🌐 Servidor API ejecutándose en puerto {self.port}.")
 
     def stop(self):
         """Detiene el servidor."""
         if self.server:
             self.server.shutdown()
-            self.logger.info("Servidor API detenido.")
+            logging.info("Servidor API detenido.")
