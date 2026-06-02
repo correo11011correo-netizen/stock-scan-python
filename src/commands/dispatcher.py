@@ -3,7 +3,10 @@ import logging
 from ..core.database import DatabaseManager
 from ..core.stock_service import StockService
 from ..core.sales_service import SalesService
-from ..core.system_service import SystemService
+from src.core.system_service import SystemService
+from src.core.auth_service import AuthService
+from src.core.cart_service import CartService
+from src.core.subscription_service import SubscriptionService
 
 class CommandDispatcher:
     """
@@ -11,16 +14,23 @@ class CommandDispatcher:
     Traduce comandos de texto en acciones de servicio, validando permisos y licencias.
     """
     
-    def __init__(self, db: DatabaseManager, stock_service: StockService, sales_service: SalesService, system_service: SystemService):
+    def __init__(self, db: DatabaseManager, stock_service: StockService, sales_service: SalesService, system_service: SystemService, auth_service: AuthService, cart_service: CartService, subscription_service: SubscriptionService):
         self.db = db
         self.stock_service = stock_service
         self.sales_service = sales_service
         self.system_service = system_service
+        self.auth_service = auth_service
+        self.cart_service = cart_service
+        self.subscription_service = subscription_service
         self.logger = logging.getLogger("CommandDispatcher")
         
         # Mapa de comandos: "comando" -> (función, nivel_acceso, es_pro)
         # Niveles de acceso: 'gratis', 'empleado', 'admin'
         self.commands_map: Dict[str, tuple] = {
+            # --- AUTENTICACIÓN ---
+            "auth.register": (self._handle_auth_register, "gratis", False),
+            "auth.login": (self._handle_auth_login, "gratis", False),
+
             # --- STOCK ---
             "stock.list": (self._handle_stock_list, "gratis", False),
             "stock.search": (self._handle_stock_search, "empleado", False),
@@ -67,9 +77,12 @@ class CommandDispatcher:
 
         handler, required_role, is_pro_feature = self.commands_map[command_str]
 
-        # 2. Validar Licencia PRO
-        if is_pro_feature and not is_pro:
-            return {"status": "error", "message": "Esta función es exclusiva de la versión PRO. Por favor, actualiza tu licencia."}
+        # 2. Validar Licencia PRO (Integración con AuthService)
+        if is_pro_feature:
+            # En un sistema real, necesitaríamos un user_id. 
+            # Como aún no tenemos login, simulamos la verificación:
+            if not is_pro:
+                return {"status": "error", "message": "Esta función es exclusiva de la versión PRO."}
 
         # 3. Validar Rol de Usuario
         if not self._check_role_permission(current_user_role, required_role):
@@ -90,6 +103,22 @@ class CommandDispatcher:
         """
         hierarchy = {"admin": 3, "empleado": 2, "gratis": 1}
         return hierarchy.get(user_role, 0) >= hierarchy.get(required_role, 0)
+
+    # --- HANDLERS DE AUTENTICACIÓN ---
+    def _handle_auth_register(self, params):
+        username = params.get("username")
+        email = params.get("email")
+        password = params.get("password")
+        if not all([username, email, password]):
+            return {"status": "error", "message": "Faltan parámetros: username, email y password son obligatorios."}
+        return self.auth_service.register_user(username, email, password)
+
+    def _handle_auth_login(self, params):
+        username = params.get("username")
+        password = params.get("password")
+        if not all([username, password]):
+            return {"status": "error", "message": "Faltan parámetros: username y password son obligatorios."}
+        return self.auth_service.login_user(username, password)
 
     # --- HANDLERS DE STOCK ---
 

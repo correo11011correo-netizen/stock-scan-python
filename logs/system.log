@@ -107,3 +107,66 @@ OSError: [Errno 98] Address already in use
 2026-06-01 19:17:35,669 [INFO] root: Result sys.theme.set: {'status': 'success', 'message': 'Configuración theme actualizada.'}
 2026-06-01 19:17:35,677 [INFO] root: GET /src/ui/themes/dark.json
 2026-06-01 19:17:35,678 [INFO] root: Intentando abrir archivo: /home/adrian/projects/stock-scan-python/src/ui/themes/dark.json
+2026-06-01 21:54:14,357 [INFO] root: Logging system initialized.
+2026-06-01 21:54:14,358 [INFO] Main: 🚀 Iniciando Sistema de Stock y Escaneo...
+2026-06-01 21:54:14,618 [INFO] DatabaseManager: Database initialized at /home/adrian/projects/stock-scan-python/data/stock_pro.db
+2026-06-01 21:54:14,619 [INFO] Main: ✅ Base de datos conectada.
+2026-06-01 21:54:14,619 [INFO] CartService: CartService inicializado.
+2026-06-01 21:54:14,620 [INFO] Main: ✅ Servicios del núcleo cargados.
+2026-06-01 21:54:14,620 [CRITICAL] Main: ❌ Error fatal durante el arranque: CommandDispatcher.__init__() got an unexpected keyword argument 'cart_service'
+Traceback (most recent call last):
+  File "/home/adrian/projects/stock-scan-python/main.py", line 54, in main
+    dispatcher = CommandDispatcher(
+TypeError: CommandDispatcher.__init__() got an unexpected keyword argument 'cart_service'
+2026-06-01 21:57:00,590 [INFO] root: Logging system initialized.
+2026-06-01 21:57:00,590 [INFO] Main: 🚀 Iniciando Sistema de Stock y Escaneo...
+2026-06-01 21:57:00,591 [INFO] DatabaseManager: Database initialized at /home/adrian/projects/stock-scan-python/data/stock_pro.db
+2026-06-01 21:57:00,591 [INFO] Main: ✅ Base de datos conectada.
+2026-06-01 21:57:00,592 [INFO] CartService: CartService inicializado.
+2026-06-01 21:57:00,592 [INFO] Main: ✅ Servicios del núcleo cargados.
+2026-06-01 21:57:00,593 [INFO] Main: ✅ Command Dispatcher operativo.
+2026-06-01 21:57:00,593 [INFO] Main: DEBUG: WebServer importado desde: /home/adrian/projects/stock-scan-python/src/ui/web_server.py
+2026-06-01 21:57:00,641 [INFO] root: 🚀 API Server iniciado en puerto 8889
+2026-06-01 21:57:00,641 [INFO] root: 🌐 Servidor API ejecutándose en puerto 8889.
+2026-06-01 21:57:00,642 [INFO] Main: ✅ Servidor Web iniciado en http://localhost:8889
+2026-06-01 21:57:00,642 [INFO] Main: 🌟 SISTEMA COMPLETAMENTE OPERATIVO
+2026-06-01 21:57:00,642 [INFO] Main: Presione Ctrl+C para detener el servidor.
+2026-06-01 21:57:11,463 [INFO] root: GET /
+2026-06-01 21:57:11,463 [INFO] root: Intentando abrir archivo: /home/adrian/projects/stock-scan-python/src/ui/index.html
+2026-06-01 21:57:11,849 [INFO] root: GET /api/config
+2026-06-01 21:57:11,849 [INFO] CommandDispatcher: Executing command: sys.info | User: empleado
+2026-06-01 21:57:11,859 [INFO] root: GET /src/ui/lang/es.json
+2026-06-01 21:57:11,859 [INFO] root: Intentando abrir archivo: /home/adrian/projects/stock-scan-python/src/ui/lang/es.json
+2026-06-01 21:57:11,897 [INFO] root: GET /src/ui/themes/light.json
+2026-06-01 21:57:11,897 [INFO] root: Intentando abrir archivo: /home/adrian/projects/stock-scan-python/src/ui/themes/light.json
+2026-06-01 21:57:11,908 [INFO] root: POST /api/execute | Command: cart.get_active | Role: admin | Params: {}
+2026-06-01 21:57:11,908 [INFO] root: Result cart.get_active: {'status': 'error', 'message': "Comando 'cart.get_active' no reconocido."}
+2026-06-01 21:57:11,919 [INFO] root: POST /api/execute | Command: stock.list | Role: admin | Params: {}
+2026-06-01 21:57:11,919 [INFO] CommandDispatcher: Executing command: stock.list | User: admin
+2026-06-01 21:57:11,921 [INFO] root: Result stock.list: {'status': 'success', 'data': [{'codigo': 'B03', 'nombre': 'Agua', 'precio': 0.7, 'cantidad': 60.0, 'categoria': 'bebidas', 'es_peso': 0, 'last_updated': '2026-06-01 21:31:02'}, {'codigo': 'A01', 'nombre': 'Arroz', 'precio': 1.0, 'cantidad': 50.0, 'categoria': 'almacen', 'es_peso': 0, 'last_updated': '2026-06-01 21:31:02'}, {'codigo': 'A03', 'nombre': 'Azúcar', 'precio': 0.9, 'cantidad': 30.0, 'categoria': 'almacen', 'es_peso': 0, 'last_updated': '2026-06-01 21:31:02'}, {'codigo': 'F02', 'nombre': 'Banana', 'precio': 0.4, 'cantidad': 100.0, 'categoria': 'frescos', 'es_peso': 1, 'last_updated': '2026-06-01 21:31:02'}, {'codigo': 'L02', 'nombre': 'Detergente', 'precio': 2.5, 'cantidad': 15.0, 'categoria': 'limpieza', 'es_peso': 0, 'last_updated': '2026-06-01 21:31:02'}, {'codigo': 'A02', 'nombre': 'Fideos', 'precio': 0.8, 'cantidad': 40.0, 'categoria': 'almacen', 'es_peso': 0, 'last_updated': '2026-06-01 21:31:02'}, {'codigo': 'L01', 'nombre': 'Jabón', 'precio': 2.0, 'cantidad': 20.0, 'categoria': 'limpieza', 'es_peso': 0, 'last_updated': '2026-06-01 21:31:02'}, {'codigo': 'B02', 'nombre': 'Jugo', 'precio': 2.0, 'cantidad': 30.0, 'categoria': 'bebidas', 'es_peso': 0, 'last_updated': '2026-06-01 21:31:02'}, {'codigo': 'L03', 'nombre': 'Lavandina', 'precio': 1.5, 'cantidad': 25.0, 'categoria': 'limpieza', 'es_peso': 0, 'last_updated': '2026-06-01 21:31:02'}, {'codigo': 'B01', 'nombre': 'Leche', 'precio': 1.5, 'cantidad': 40.0, 'categoria': 'bebidas', 'es_peso': 0, 'last_updated': '2026-06-01 21:31:02'}, {'codigo': 'F01', 'nombre': 'Manzana', 'precio': 0.5, 'cantidad': 100.0, 'categoria': 'frescos', 'es_peso': 1, 'last_updated': '2026-06-01 21:31:02'}, {'codigo': 'F03', 'nombre': 'Tomate', 'precio': 1.2, 'cantidad': 60.0, 'categoria': 'frescos', 'es_peso': 1, 'last_updated': '2026-06-01 21:31:02'}]}
+2026-06-01 22:12:31,515 [INFO] root: Logging system initialized.
+2026-06-01 22:12:31,515 [INFO] Main: 🚀 Iniciando Sistema de Stock y Escaneo...
+2026-06-01 22:12:31,517 [INFO] DatabaseManager: Database initialized at /home/adrian/projects/stock-scan-python/data/stock_pro.db
+2026-06-01 22:12:31,517 [INFO] Main: ✅ Base de datos conectada.
+2026-06-01 22:12:31,517 [INFO] CartService: CartService inicializado.
+2026-06-01 22:12:31,518 [INFO] Main: ✅ Servicios del núcleo cargados.
+2026-06-01 22:12:31,518 [INFO] Main: ✅ Command Dispatcher operativo.
+2026-06-01 22:12:31,518 [INFO] Main: DEBUG: WebServer importado desde: /home/adrian/projects/stock-scan-python/src/ui/web_server.py
+2026-06-01 22:12:31,519 [INFO] root: 🚀 API Server iniciado en puerto 8889
+2026-06-01 22:12:31,519 [INFO] root: 🌐 Servidor API ejecutándose en puerto 8889.
+2026-06-01 22:12:31,520 [INFO] Main: ✅ Servidor Web iniciado en http://localhost:8889
+2026-06-01 22:12:31,520 [INFO] Main: 🌟 SISTEMA COMPLETAMENTE OPERATIVO
+2026-06-01 22:12:31,520 [INFO] Main: Presione Ctrl+C para detener el servidor.
+2026-06-01 22:12:37,811 [INFO] root: GET /
+2026-06-01 22:12:37,812 [INFO] root: Intentando abrir archivo: /home/adrian/projects/stock-scan-python/src/ui/index.html
+2026-06-01 22:12:37,958 [INFO] root: GET /api/config
+2026-06-01 22:12:37,959 [INFO] CommandDispatcher: Executing command: sys.info | User: empleado
+2026-06-01 22:12:37,973 [INFO] root: GET /src/ui/lang/es.json
+2026-06-01 22:12:37,974 [INFO] root: Intentando abrir archivo: /home/adrian/projects/stock-scan-python/src/ui/lang/es.json
+2026-06-01 22:12:37,990 [INFO] root: GET /src/ui/themes/light.json
+2026-06-01 22:12:37,992 [INFO] root: Intentando abrir archivo: /home/adrian/projects/stock-scan-python/src/ui/themes/light.json
+2026-06-01 22:12:38,015 [INFO] root: POST /api/execute | Command: cart.get_active | Role: admin | Params: {}
+2026-06-01 22:12:38,018 [INFO] root: Result cart.get_active: {'status': 'error', 'message': "Comando 'cart.get_active' no reconocido."}
+2026-06-01 22:12:38,024 [INFO] root: POST /api/execute | Command: stock.list | Role: admin | Params: {}
+2026-06-01 22:12:38,025 [INFO] CommandDispatcher: Executing command: stock.list | User: admin
+2026-06-01 22:12:38,026 [INFO] root: Result stock.list: {'status': 'success', 'data': [{'codigo': 'B03', 'nombre': 'Agua', 'precio': 0.7, 'cantidad': 60.0, 'categoria': 'bebidas', 'es_peso': 0, 'last_updated': '2026-06-01 21:31:02'}, {'codigo': 'A01', 'nombre': 'Arroz', 'precio': 1.0, 'cantidad': 50.0, 'categoria': 'almacen', 'es_peso': 0, 'last_updated': '2026-06-01 21:31:02'}, {'codigo': 'A03', 'nombre': 'Azúcar', 'precio': 0.9, 'cantidad': 30.0, 'categoria': 'almacen', 'es_peso': 0, 'last_updated': '2026-06-01 21:31:02'}, {'codigo': 'F02', 'nombre': 'Banana', 'precio': 0.4, 'cantidad': 100.0, 'categoria': 'frescos', 'es_peso': 1, 'last_updated': '2026-06-01 21:31:02'}, {'codigo': 'L02', 'nombre': 'Detergente', 'precio': 2.5, 'cantidad': 15.0, 'categoria': 'limpieza', 'es_peso': 0, 'last_updated': '2026-06-01 21:31:02'}, {'codigo': 'A02', 'nombre': 'Fideos', 'precio': 0.8, 'cantidad': 40.0, 'categoria': 'almacen', 'es_peso': 0, 'last_updated': '2026-06-01 21:31:02'}, {'codigo': 'L01', 'nombre': 'Jabón', 'precio': 2.0, 'cantidad': 20.0, 'categoria': 'limpieza', 'es_peso': 0, 'last_updated': '2026-06-01 21:31:02'}, {'codigo': 'B02', 'nombre': 'Jugo', 'precio': 2.0, 'cantidad': 30.0, 'categoria': 'bebidas', 'es_peso': 0, 'last_updated': '2026-06-01 21:31:02'}, {'codigo': 'L03', 'nombre': 'Lavandina', 'precio': 1.5, 'cantidad': 25.0, 'categoria': 'limpieza', 'es_peso': 0, 'last_updated': '2026-06-01 21:31:02'}, {'codigo': 'B01', 'nombre': 'Leche', 'precio': 1.5, 'cantidad': 40.0, 'categoria': 'bebidas', 'es_peso': 0, 'last_updated': '2026-06-01 21:31:02'}, {'codigo': 'F01', 'nombre': 'Manzana', 'precio': 0.5, 'cantidad': 100.0, 'categoria': 'frescos', 'es_peso': 1, 'last_updated': '2026-06-01 21:31:02'}, {'codigo': 'F03', 'nombre': 'Tomate', 'precio': 1.2, 'cantidad': 60.0, 'categoria': 'frescos', 'es_peso': 1, 'last_updated': '2026-06-01 21:31:02'}]}

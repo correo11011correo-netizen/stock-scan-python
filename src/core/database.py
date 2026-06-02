@@ -125,11 +125,50 @@ class DatabaseManager:
                     )
                 ''')
                 
-                # 7. Configuraciones del Sistema (Temas, Idioma, etc)
+                # 7. Configuraciones del Sistema
                 cursor.execute('''
                     CREATE TABLE IF NOT EXISTS settings (
                         key TEXT PRIMARY KEY,
                         value TEXT
+                    )
+                ''')
+
+                # 8. Usuarios
+                cursor.execute('''
+                    CREATE TABLE IF NOT EXISTS users (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        username TEXT UNIQUE NOT NULL,
+                        email TEXT UNIQUE NOT NULL,
+                        password_hash TEXT NOT NULL,
+                        role TEXT DEFAULT 'free',
+                        status TEXT DEFAULT 'active',
+                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                    )
+                ''')
+
+                # 9. Suscripciones
+                cursor.execute('''
+                    CREATE TABLE IF NOT EXISTS subscriptions (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        user_id INTEGER NOT NULL,
+                        plan_name TEXT NOT NULL,
+                        start_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        end_date TIMESTAMP,
+                        status TEXT DEFAULT 'active',
+                        FOREIGN KEY(user_id) REFERENCES users(id)
+                    )
+                ''')
+
+                # 10. Transacciones
+                cursor.execute('''
+                    CREATE TABLE IF NOT EXISTS transactions (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        user_id INTEGER,
+                        mp_payment_id TEXT UNIQUE,
+                        amount REAL,
+                        status TEXT,
+                        date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        FOREIGN KEY(user_id) REFERENCES users(id)
                     )
                 ''')
                 
