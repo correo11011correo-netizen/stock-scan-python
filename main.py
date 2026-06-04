@@ -15,14 +15,30 @@ def setup_logging():
     log_dir = "logs"
     os.makedirs(log_dir, exist_ok=True)
     
+    # Configuración del log para archivo (DEBUG)
+    file_handler = logging.FileHandler(os.path.join(log_dir, "system.log"))
+    file_handler.setLevel(logging.DEBUG)
+    file_handler.setFormatter(logging.Formatter('%(asctime)s [%(levelname)s] %(name)s: %(message)s'))
+
+    # Configuración del log para consola/Render (INFO)
+    stream_handler = logging.StreamHandler(sys.stdout)
+    stream_handler.setLevel(logging.INFO)
+    stream_handler.setFormatter(logging.Formatter('%(asctime)s [%(levelname)s] %(name)s: %(message)s'))
+
     logging.basicConfig(
-        level=logging.INFO,
-        format='%(asctime)s [%(levelname)s] %(name)s: %(message)s',
-        handlers=[
-            logging.FileHandler(os.path.join(log_dir, "system.log")),
-            logging.StreamHandler(sys.stdout)
-        ]
+        level=logging.DEBUG, # Nivel global de logging
+        handlers=[file_handler, stream_handler]
     )
+
+    # Captura global de excepciones no manejadas
+    def handle_unhandled_exception(exc_type, exc_value, exc_traceback):
+        if issubclass(exc_type, KeyboardInterrupt):
+            # No registrar KeyboardInterrupt
+            sys.__excepthook__(exc_type, exc_value, exc_traceback)
+            return
+        logging.critical("Excepción no manejada:", exc_info=(exc_type, exc_value, exc_traceback))
+
+    sys.excepthook = handle_unhandled_exception
     logging.info("Logging system initialized.")
 
 def main():
