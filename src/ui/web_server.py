@@ -2,7 +2,7 @@ import json
 import logging
 import os
 import mimetypes
-import cgi
+import email
 from pathlib import Path
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from threading import Thread
@@ -99,18 +99,30 @@ class WebAPIHandler(BaseHTTPRequestHandler):
         # Manejar la carga de archivos (Upload)
         if self.path == '/api/upload':
             try:
-                form = cgi.FieldStorage(
-                    fp=self.rfile,
-                    headers=self.headers,
-                    environ={'REQUEST_METHOD': 'POST', 'CONTENT_TYPE': self.headers.get('Content-Type')}
+                content_type = self.headers.get('Content-Type')
+                if not content_type or 'multipart/form-data' not in content_type:
+                    return self._json_response({"status": "error", "message": "Content-Type debe ser multipart/form-data"}, 400)
+
+                content_length = int(self.headers['Content-Length'])
+                body = self.rfile.read(content_length)
+                
+                # Simular un mensaje de correo para que el parser de email pueda procesarlo
+                msg = email.message_from_bytes(
+                    f"Content-Type: {content_type}\r\n\r\n".encode() + body,
+                    strict=False
                 )
                 
-                if 'file' not in form:
-                    return self._json_response({"status": "error", "message": "No se recibió ningún archivo."}, 400)
+                file_item = None
+                for part in msg.get_payload():
+                    if part.get_filename():
+                        file_item = part
+                        break
                 
-                file_item = form['file']
-                if not file_item.filename:
-                    return self._json_response({"status": "error", "message": "El archivo no tiene nombre."}, 400)
+                if not file_item:
+                    return self._json_response({"status": "error", "message": "No se recibió ningún archivo válido."}, 400)
+                
+                filename_orig = file_item.get_filename()
+                content = file_item.get_payload(decode=True)
                 
                 # Crear carpeta de uploads relativa a la raíz del proyecto
                 base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -118,11 +130,11 @@ class WebAPIHandler(BaseHTTPRequestHandler):
                 os.makedirs(upload_dir, exist_ok=True)
                 
                 # Guardar el archivo con un nombre único para evitar colisiones
-                filename = f"upload_{int(datetime.now().timestamp())}_{file_item.filename}"
+                filename = f"upload_{int(datetime.now().timestamp())}_{filename_orig}"
                 full_path = os.path.join(upload_dir, filename)
                 
                 with open(full_path, 'wb') as f:
-                    f.write(file_item.file.read())
+                    f.write(content)
                 
                 logging.info(f"Archivo subido exitosamente: {full_path}")
                 return self._json_response({"status": "success", "path": full_path})
