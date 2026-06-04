@@ -104,22 +104,21 @@ class AuthService:
         return {"status": "error", "message": "Sesión no encontrada."}
 
     def resolve_tenant_db(self, tenant_id: str) -> Optional[str]:
-        """Busca la ruta del archivo de base de datos para un tenant específico."""
+        """Busca el nombre del esquema de la base de datos para un tenant específico."""
         if not tenant_id:
             return None
         
         tenant = self.global_db.fetch_one(
-            "SELECT db_path FROM tenants WHERE id = ?", 
+            "SELECT schema_name FROM tenants WHERE id = ?", 
             (tenant_id,)
         )
-        return tenant["db_path"] if tenant else None
+        return tenant["schema_name"] if tenant else None
 
     def get_user_permissions(self, user_id: str, tenant_id: str) -> set:
         """
         Retorna el conjunto de permisos otorgados para un usuario en un tenant.
-        Retorna un set de strings (ej: {'perm_stock_read', 'perm_sales_process'}).
         """
-        query = "SELECT permission_key FROM permissions WHERE user_id = ? AND tenant_id = ? AND granted = 1"
+        query = "SELECT permission_key FROM permissions WHERE user_id = %s AND tenant_id = %s AND granted = True"
         results = self.global_db.fetch_all(query, (user_id, tenant_id))
         return {row["permission_key"] for row in results}
 
@@ -128,24 +127,22 @@ class AuthService:
         try:
             query = '''
                 INSERT INTO permissions (tenant_id, user_id, permission_key, granted, updated_at)
-                VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)
+                VALUES (%s, %s, %s, %s, CURRENT_TIMESTAMP)
                 ON CONFLICT(tenant_id, user_id, permission_key) DO UPDATE SET
                     granted=excluded.granted,
                     updated_at=excluded.updated_at
             '''
-            self.global_db.execute(query, (tenant_id, user_id, permission_key, 1 if granted else 0))
+            self.global_db.execute(query, (tenant_id, user_id, permission_key, granted))
             return {"status": "success", "message": f"Permiso {permission_key} {'otorgado' if granted else 'revocado'}."}
         except Exception as e:
             self.logger.error(f"Error setting permission: {e}")
             return {"status": "error", "message": str(e)}
 
     def revoke_user_access(self, user_id: str) -> Dict[str, Any]:
-        """Elimina completamente a un usuario del sistema (y sus permisos)."""
+        """Elimina completamente a un usuario del sistema."""
         try:
-            # Eliminar permisos primero por integridad
-            self.global_db.execute("DELETE FROM permissions WHERE user_id = ?", (user_id,))
-            # Eliminar usuario
-            self.global_db.execute("DELETE FROM users WHERE id = ?", (user_id,))
+            self.global_db.execute("DELETE FROM permissions WHERE user_id = %s", (user_id,))
+            self.global_db.execute("DELETE FROM users WHERE id = %s", (user_id,))
             return {"status": "success", "message": "Acceso del usuario revocado exitosamente."}
         except Exception as e:
             self.logger.error(f"Error revoking access: {e}")
@@ -153,42 +150,35 @@ class AuthService:
 
     def create_owner_account(self, username, password, business_name) -> Dict[str, Any]:
         """
-        Crea un nuevo dueño y su respectiva instancia de negocio (Tenant).
-        Esta función es la base para el registro de nuevos negocios.
+        Crea un nuevo dueño y su respectiva instancia de negocio (Tenant) en PostgreSQL.
         """
         try:
-            # 1. Crear IDs únicos
             user_id = str(uuid.uuid4())[:8]
             tenant_id = f"tenant_{user_id}"
+            # En Postgres, el esquema debe empezar por letra y no tener caracteres especiales complicados
+            schema_name = f"schema_{user_id}"
             
-            # 2. Definir ruta de la base de datos del tenant
-            # Usamos la ruta absoluta al directorio de datos central
-            db_filename = f"{tenant_id}.db"
-            # Resolver ruta relativa a la carpeta /data del proyecto
-            base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-            db_path = os.path.join(base_dir, "data", db_filename) 
-
-            # 3. Insertar Tenant
+            # 1. Insertar Tenant con su esquema asignado
             self.global_db.execute(
-                "INSERT INTO tenants (id, owner_id, db_path, business_name, plan, credits) VALUES (?, ?, ?, ?, ?, ?)",
-                (tenant_id, user_id, db_path, business_name, "FREE", 10)
+                "INSERT INTO tenants (id, owner_id, schema_name, business_name, plan, credits) VALUES (%s, %s, %s, %s, %s, %s)",
+                (tenant_id, user_id, schema_name, business_name, "FREE", 10)
             )
 
-            # 4. Insertar Usuario como OWNER
+            # 2. Insertar Usuario como OWNER
             self.global_db.execute(
-                "INSERT INTO users (id, username, password_hash, role, tenant_id) VALUES (?, ?, ?, ?, ?)",
+                "INSERT INTO users (id, username, password_hash, role, tenant_id) VALUES (%s, %s, %s, %s, %s)",
                 (user_id, username, self._hash_password(password), "OWNER", tenant_id)
             )
 
-            self.logger.info(f"Nuevo dueño creado: {username} para negocio {business_name} ({tenant_id})")
+            self.logger.info(f"Nuevo dueño creado: {username} para negocio {business_name} (Schema: {schema_name})")
             return {
                 "status": "success", 
                 "user_id": user_id, 
                 "tenant_id": tenant_id, 
-                "db_path": db_path
+                "schema_name": schema_name
             }
         except Exception as e:
-            self.logger.error(f"Error creando cuenta de dueño: {e}")
+            self.logger.error(f"Error creando cuenta de dueño en Postgres: {e}")
             return {"status": "error", "message": str(e)}
 
     def create_employee_account(self, username, password, tenant_id) -> Dict[str, Any]:

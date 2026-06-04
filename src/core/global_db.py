@@ -1,49 +1,40 @@
-import sqlite3
+import psycopg2
+from psycopg2 import extras
 import os
 import logging
 
 class GlobalDatabaseManager:
     """
-    Gestor de la Base de Datos Global del Sistema.
-    Maneja la identidad de usuarios, la definición de tenants (negocios) 
-    y la matriz de permisos global.
+    Gestor de la base de datos maestra.
+    Contiene la tabla de usuarios, tenants y permisos globales.
+    Usa el esquema 'public' por defecto.
     """
-    
-    def __init__(self, db_name="global_system.db"):
-        self.db_name = db_name
+    def __init__(self):
         self.logger = logging.getLogger("GlobalDatabaseManager")
-        self.db_path = self._resolve_global_path()
+        self.db_url = os.environ.get("DATABASE_URL")
+        if not self.db_url:
+            self.logger.critical("DATABASE_URL no encontrada.")
+            raise Exception("Error: Railway DATABASE_URL no configurada.")
+        
         self._init_global_db()
 
-    def _resolve_global_path(self):
-        """Resuelve la ruta de la base de datos global apuntando a la carpeta central de datos."""
-        # Buscamos la carpeta 'data' relativa a la raíz del proyecto
-        base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-        path = os.path.join(base_dir, "data", self.db_name)
-        self.logger.info(f"Global DB path resolved to central data directory: {path}")
-        return path
-
     def _get_connection(self):
-        os.makedirs(os.path.dirname(self.db_path), exist_ok=True) if os.path.dirname(self.db_path) else None
-        conn = sqlite3.connect(self.db_path)
-        conn.row_factory = sqlite3.Row
-        return conn
+        return psycopg2.connect(self.db_url)
 
     def _init_global_db(self):
-        """Inicializa las tablas globales de identidad y permisos."""
+        """Crea las tablas maestras en el esquema public."""
         try:
-            with self._get_connection() as conn:
-                cursor = conn.cursor()
-                
+            conn = self._get_connection()
+            with conn.cursor() as cursor:
                 # 1. Tabla de Tenants (Negocios)
                 cursor.execute('''
                     CREATE TABLE IF NOT EXISTS tenants (
                         id TEXT PRIMARY KEY,
-                        owner_id TEXT NOT NULL,
-                        db_path TEXT NOT NULL,
-                        business_name TEXT NOT NULL,
-                        plan TEXT DEFAULT 'FREE', -- 'FREE', 'PRO', 'ENTERPRISE'
-                        credits INTEGER DEFAULT 0,
+                        owner_id TEXT,
+                        schema_name TEXT UNIQUE NOT NULL,
+                        business_name TEXT,
+                        plan TEXT DEFAULT 'FREE',
+                        credits INTEGER DEFAULT 10,
                         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                     )
                 ''')
@@ -54,63 +45,62 @@ class GlobalDatabaseManager:
                         id TEXT PRIMARY KEY,
                         username TEXT UNIQUE NOT NULL,
                         password_hash TEXT NOT NULL,
-                        role TEXT NOT NULL, -- 'OWNER', 'EMPLOYEE'
-                        tenant_id TEXT,
-                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                        FOREIGN KEY(tenant_id) REFERENCES tenants(id)
+                        role TEXT NOT NULL,
+                        tenant_id TEXT REFERENCES tenants(id),
+                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                     )
                 ''')
                 
-                # 3. Tabla de Permisos Dinámicos
+                # 3. Tabla de Permisos Granulares
                 cursor.execute('''
                     CREATE TABLE IF NOT EXISTS permissions (
-                        id INTEGER PRIMARY KEY AUTOINCREMENT,
-                        tenant_id TEXT NOT NULL,
-                        user_id TEXT NOT NULL,
-                        permission_key TEXT NOT NULL, -- ej: 'perm_stock_write'
-                        granted BOOLEAN DEFAULT 0,
+                        tenant_id TEXT REFERENCES tenants(id),
+                        user_id TEXT REFERENCES users(id),
+                        permission_key TEXT,
+                        granted BOOLEAN DEFAULT FALSE,
                         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                        UNIQUE(tenant_id, user_id, permission_key),
-                        FOREIGN KEY(tenant_id) REFERENCES tenants(id),
-                        FOREIGN KEY(user_id) REFERENCES users(id)
+                        PRIMARY KEY (tenant_id, user_id, permission_key)
                     )
                 ''')
-                
                 conn.commit()
-                self.logger.info(f"Global Database initialized at {self.db_path}")
+                self.logger.info("Global Database initialized successfully in schema 'public'.")
+            conn.close()
         except Exception as e:
-            self.logger.error(f"Critical Error initializing Global DB: {e}")
+            self.logger.error(f"Error initializing global DB: {e}")
             raise e
-
-    # --- MÉTODOS DE ACCESO ---
 
     def execute(self, query, params=()):
         try:
-            with self._get_connection() as conn:
-                cursor = conn.cursor()
+            conn = self._get_connection()
+            with conn.cursor() as cursor:
                 cursor.execute(query, params)
                 conn.commit()
-                return cursor.lastrowid
+            conn.close()
+            return True
         except Exception as e:
-            self.logger.error(f"Global Query Error: {query} | Error: {e}")
+            self.logger.error(f"Global execute error: {e}")
             return None
 
     def fetch_one(self, query, params=()):
         try:
-            with self._get_connection() as conn:
-                cursor = conn.cursor()
+            conn = self._get_connection()
+            with conn.cursor(cursor_factory=extras.RealDictCursor) as cursor:
                 cursor.execute(query, params)
-                return cursor.fetchone()
+                res = cursor.fetchone()
+            conn.close()
+            return res
         except Exception as e:
-            self.logger.error(f"Global FetchOne Error: {query} | Error: {e}")
+            self.logger.error(f"Global fetch_one error: {e}")
             return None
 
     def fetch_all(self, query, params=()):
         try:
-            with self._get_connection() as conn:
-                cursor = conn.cursor()
+            conn = self._get_connection()
+            with conn.cursor(cursor_factory=extras.RealDictCursor) as cursor:
                 cursor.execute(query, params)
-                return cursor.fetchall()
+                res = cursor.fetchall()
+            conn.close()
+            return res
         except Exception as e:
-            self.logger.error(f"Global FetchAll Error: {query} | Error: {e}")
+            self.logger.error(f"Global fetch_all error: {e}")
             return []

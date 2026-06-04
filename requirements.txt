@@ -3,3 +3,4 @@ typer
 pandas
 openpyxl
 requests
+psycopg2-binary
