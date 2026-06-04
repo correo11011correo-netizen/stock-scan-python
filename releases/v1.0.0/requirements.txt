@@ -1,0 +1,5 @@
+spacy
+typer
+pandas
+openpyxl
+requests
