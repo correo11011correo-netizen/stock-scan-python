@@ -1,0 +1,1673 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Stock & Scan Native</title>
+    <style>
+        :root {
+            --primary: #6366f1;
+            --secondary: #818cf8;
+            --background: #f8fafc;
+            --surface: #ffffff;
+            --text: #1e293b;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+            --success: #10b981;
+            --error: #ef4444;
+            --warning: #f59e0b;
+            --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+        }
+
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { 
+            margin: 0; 
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
+            background-color: var(--background); 
+            color: var(--text);
+            transition: all 0.3s ease;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* Layout */
+        .app-container { display: flex; flex: 1; overflow: hidden; position: relative; }
+        
+        /* Sidebar / Navigation */
+        .sidebar {
+            width: 260px;
+            background-color: var(--surface);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.3s ease;
+            z-index: 100;
+        }
+        .sidebar-header {
+            padding: 24px;
+            text-align: center;
+            border-bottom: 1px solid var(--border);
+        }
+        .sidebar-header h1 { 
+            font-size: 1.2rem; 
+            margin: 0; 
+            color: var(--primary); 
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .nav-menu { flex: 1; padding: 16px; display: flex; flex-direction: column; gap: 8px; }
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            border-radius: 12px;
+            cursor: pointer;
+            color: var(--text-muted);
+            transition: all 0.2s;
+            font-weight: 500;
+            text-decoration: none;
+        }
+        .nav-item:hover { background-color: var(--border); color: var(--text); }
+        .nav-item.active { background-color: var(--primary); color: white; box-shadow: var(--shadow); }
+
+        /* Main Content Area */
+        .main-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 24px;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+        .view { display: none; animation: fadeIn 0.3s ease; }
+        .view.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Components */
+        .card {
+            background-color: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: var(--shadow);
+        }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
+        
+        /* Forms */
+        .form-group { margin-bottom: 16px; }
+        .form-group label { display: block; margin-bottom: 6px; font-size: 0.85rem; color: var(--text-muted); font-weight: 600; }
+        .input {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background-color: var(--background);
+            color: var(--text);
+            font-size: 1rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .input:focus { border-color: var(--primary); }
+
+        .password-container { position: relative; display: flex; align-items: center; }
+        .password-toggle {
+            position: absolute;
+            right: 12px;
+            cursor: pointer;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            user-select: none;
+            background: none;
+            border: none;
+            padding: 0;
+        }
+        .password-toggle:hover { color: var(--primary); }
+
+        .btn {
+            padding: 12px 24px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .btn-primary { background-color: var(--primary); color: white; }
+        .btn-primary:hover { opacity: 0.9; transform: translateY(-1px); }
+        .btn-secondary { background-color: var(--border); color: var(--text); }
+        .btn-danger { background-color: var(--error); color: white; }
+
+        /* Table Styles */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 16px;
+        }
+        .data-table th {
+            text-align: left;
+            padding: 12px;
+            border-bottom: 2px solid var(--border);
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            text-transform: uppercase;
+        }
+        .data-table td {
+            padding: 12px;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.9rem;
+        }
+        .badge {
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+        .badge-success { background-color: var(--success); color: white; }
+        .badge-error { background-color: var(--error); color: white; }
+
+        /* Command Console */
+        .command-bar {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 90%;
+            max-width: 600px;
+            background-color: var(--surface);
+            border: 2px solid var(--primary);
+            border-radius: 50px;
+            padding: 8px 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.3);
+            z-index: 1000;
+        }
+        .command-input {
+            flex: 1;
+            border: none;
+            background: transparent;
+            color: var(--text);
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            outline: none;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .mobile-header { display: flex !important; }
+            .sidebar {
+                position: fixed;
+                left: -260px;
+                top: 0;
+                height: 100vh;
+                transition: left 0.3s ease;
+            }
+            .sidebar.open { left: 0; }
+            .sidebar-overlay.active { display: block; }
+            .main-content { padding-bottom: 80px; padding-top: 80px; }
+        }
+        .hidden { display: none !important; }
+
+        /* Mobile Header & Overlay */
+        .mobile-header {
+            display: none;
+            background-color: var(--surface);
+            border-bottom: 1px solid var(--border);
+            padding: 12px 20px;
+            align-items: center;
+            justify-content: space-between;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 110;
+        }
+
+        .sidebar-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 90;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="mobile-header">
+        <div style="display:flex; align-items:center; gap:10px;">
+            <button class="btn btn-secondary" style="padding:8px 12px" onclick="app.toggleSidebar()">☰</button>
+            <h1 style="font-size:1rem; margin:0; color:var(--primary);">Stock Pro</h1>
+        </div>
+        <div id="mobile-version-badge" class="badge">...</div>
+    </div>
+
+    <div class="app-container">
+        <div id="sidebar-overlay" class="sidebar-overlay" onclick="app.toggleSidebar()"></div>
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <h1>Stock Pro</h1>
+                <div id="version-badge" class="badge" style="margin-top: 8px; display: inline-block;">Cargando...</div>
+                <div id="user-info" style="margin-top: 12px; font-size: 0.8rem; text-align: left; padding: 10px; background: var(--background); border-radius: 8px; border: 1px solid var(--border);">
+                    <!-- Info de usuario cargada dinámicamente -->
+                </div>
+            </div>
+            <nav class="nav-menu">
+                <div class="nav-item active" onclick="app.switchView('view-stock')" data-view="view-stock">📦 <span data-i18n="menu_stock">Stock</span></div>
+                <div class="nav-item" onclick="app.switchView('view-sales')" data-view="view-sales">🛒 <span data-i18n="menu_sales">Ventas</span></div>
+                <div class="nav-item" onclick="app.switchView('view-alias')" data-view="view-alias">🏷️ <span data-i18n="menu_alias">Alias</span></div>
+                <div class="nav-item" onclick="app.switchView('view-import')" data-view="view-import">📥 <span data-i18n="menu_import">Importar Stock</span></div>
+                <div class="nav-item" onclick="app.switchView('view-subscription')" data-view="view-subscription">💳 <span data-i18n="menu_subscription">Suscripciones</span></div>
+                <div class="nav-item" onclick="app.switchView('view-settings')" data-view="view-settings">⚙️ <span data-i18n="menu_settings">Ajustes</span></div>
+                <div class="nav-item hidden" id="nav-personnel" onclick="app.switchView('view-personnel')" data-view="view-personnel">👥 <span data-i18n="menu_personnel">Personal</span></div>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+            <!-- AUTH VIEWS -->
+            <div id="view-login" class="view">
+                <div class="card" style="max-width: 400px; margin: 100px auto; text-align: center;">
+                    <h2>🔐 Iniciar Sesión</h2>
+                    <div class="form-group">
+                        <label>Usuario</label>
+                        <input type="text" id="login-user" class="input">
+                    </div>
+                    <div class="form-group">
+                        <label>Contraseña</label>
+                        <div class="password-container">
+                            <input type="password" id="login-pass" class="input">
+                            <button type="button" class="password-toggle" onclick="app.togglePassword('login-pass')">👁️</button>
+                        </div>
+                    </div>
+                    <button class="btn btn-primary" style="width: 100%" onclick="app.login()">Entrar</button>
+                    <p style="margin-top: 20px; font-size: 0.9rem; color: var(--text-muted);">
+                        ¿No tienes cuenta? <a href="#" onclick="app.switchView('view-register')" style="color: var(--primary)">Regístrate como Dueño</a>
+                    </p>
+                </div>
+            </div>
+
+            <div id="view-register" class="view">
+                <div class="card" style="max-width: 400px; margin: 100px auto; text-align: center;">
+                    <h2>🏢 Registrar Negocio</h2>
+                    <div class="form-group">
+                        <label>Nombre del Negocio</label>
+                        <input type="text" id="reg-business" class="input">
+                    </div>
+                    <div class="form-group">
+                        <label>Usuario Administrador</label>
+                        <input type="text" id="reg-user" class="input">
+                    </div>
+                    <div class="form-group">
+                        <label>Contraseña</label>
+                        <div class="password-container">
+                            <input type="password" id="reg-pass" class="input">
+                            <button type="button" class="password-toggle" onclick="app.togglePassword('reg-pass')">👁️</button>
+                        </div>
+                    </div>
+                    <button class="btn btn-primary" style="width: 100%" onclick="app.registerOwner()">Crear Cuenta</button>
+                    <p style="margin-top: 20px; font-size: 0.9rem; color: var(--text-muted);">
+                        ¿Ya tienes cuenta? <a href="#" onclick="app.switchView('view-login')" style="color: var(--primary)">Inicia Sesión</a>
+                    </p>
+                </div>
+            </div>
+
+            <!-- STOCK VIEW -->
+            <div id="view-stock" class="view active">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                    <h2 data-i18n="menu_stock">Gestión de Stock</h2>
+                    <button class="btn btn-primary" onclick="app.showModal('modal-product')">➕ <span data-i18n="btn_save">Nuevo Producto</span></button>
+                </div>
+                
+                <div class="card">
+                    <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+                        <input type="text" id="stock-search" class="input" placeholder="Buscar producto o código..." oninput="app.loadStock()">
+                        <button class="btn btn-secondary" onclick="app.loadStock()">🔄</button>
+                    </div>
+                    <div style="overflow-x: auto;">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Código</th>
+                                    <th>Nombre</th>
+                                    <th>Categoría</th>
+                                    <th>Precio</th>
+                                    <th>Cantidad</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="stock-table-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SALES VIEW -->
+            <div id="view-sales" class="view">
+                <h2 data-i18n="menu_sales">Terminal de Ventas</h2>
+                <div class="grid">
+                    <div class="card">
+                        <h3>🛒 Carrito</h3>
+                        <div id="cart-items" style="min-height: 200px; margin-bottom: 20px;"></div>
+                        <div style="font-size: 1.5rem; font-weight: 800; text-align: right; margin-bottom: 20px;">
+                            Total: <span id="cart-total">$0.00</span>
+                        </div>
+                        <button class="btn btn-primary" style="width: 100%" onclick="app.openCheckout()">💰 <span data-i18n="btn_pay">Cobrar Venta</span></button>
+                    </div>
+                    <div class="card">
+                        <h3>🔍 Búsqueda Rápida</h3>
+                        <div class="form-group">
+                            <input type="text" id="sale-scan" class="input" placeholder="Escanea código o escribe nombre..." oninput="app.quickAddProduct()">
+                        </div>
+                        <div id="quick-results"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- IMPORT VIEW -->
+            <div id="view-import" class="view">
+                <h2 data-i18n="menu_import">Importación de Stock</h2>
+                <div class="grid">
+                    <div class="card">
+                        <h3>⚙️ Configuración de Importación</h3>
+                        <div class="form-group">
+                            <label>Seleccionar Archivo CSV</label>
+                            <input type="file" id="import-file-input" class="input" accept=".csv" onchange="app.handleFileUpload(this)">
+                        </div>
+                        <div class="form-group">
+                            <label>ID del Mapeo de Columnas</label>
+                            <input type="text" id="import-mapping" class="input" placeholder="ej: default_csv">
+                        </div>
+                        <div id="import-status" style="margin-bottom: 15px; font-size: 0.85rem; font-weight: bold;"></div>
+                        <button id="btn-run-import" class="btn btn-primary" onclick="app.runImportPreview()" disabled>🔍 Examinar Archivo</button>
+                    </div>
+                    <div class="card">
+                        <h3>📝 Log de Proceso</h3>
+                        <div id="import-log" style="height: 200px; overflow-y: auto; background: var(--background); padding: 15px; border-radius: 8px; font-family: monospace; font-size: 0.85rem; border: 1px solid var(--border);">
+                            Esperando selección de archivo...
+                        </div>
+                    </div>
+                </div>
+                <div id="import-preview-container" class="card hidden" style="margin-top: 20px;">
+                    <h3>📋 Previsualización y Edición</h3>
+                    <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 15px;">
+                        Revisa los datos importados. Puedes editar cualquier campo antes de confirmar la carga al stock.
+                    </p>
+                    <div style="overflow-x: auto;">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Fila</th>
+                                    <th>Código</th>
+                                    <th>Nombre</th>
+                                    <th>Precio</th>
+                                    <th>Cantidad</th>
+                                    <th>Categoría</th>
+                                    <th>Peso?</th>
+                                </tr>
+                            </thead>
+                            <tbody id="import-preview-body"></tbody>
+                        </table>
+                    </div>
+                    <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:20px;">
+                        <button class="btn btn-secondary" onclick="document.getElementById('import-preview-container').classList.add('hidden')">Cancelar</button>
+                        <button class="btn btn-primary" onclick="app.commitImport()">💾 Guardar en Stock</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- REPORTS VIEW -->
+            <div id="view-reports" class="view">
+                <h2 data-i18n="menu_reports">Reportes y Análisis</h2>
+                <div class="grid">
+                    <div class="card">
+                        <h3>Resumen Financiero</h3>
+                        <div id="report-summary" style="font-size: 1.1rem; line-height: 2;"></div>
+                    </div>
+                    <div class="card">
+                        <h3>⚠️ Stock Crítico</h3>
+                        <div id="report-alerts"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SETTINGS VIEW -->
+            <div id="view-settings" class="view">
+                <h2 data-i18n="menu_settings">Ajustes del Sistema</h2>
+                <div class="card">
+                    <h3>Personalización</h3>
+                    <div class="form-group">
+                        <label>Tema Visual</label>
+                        <select id="theme-select" class="input" onchange="app.setTheme(this.value)">
+                            <option value="light">Luz</option>
+                            <option value="dark">Oscuro</option>
+                            <option value="night">Noche (AMOLED)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Idioma</label>
+                        <select id="lang-select" class="input" onchange="app.setLang(this.value)">
+                            <option value="es">Español</option>
+                            <option value="en">English</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="card">
+                    <h3>Administración</h3>
+                    <button class="btn btn-secondary" onclick="app.exportCSV()">📄 Exportar Inventario CSV</button>
+                </div>
+            </div>
+
+            <!-- CASH VIEW -->
+            <div id="view-cash" class="view">
+                <h2>💰 Gestión de Caja</h2>
+                <div class="grid">
+                    <div class="card">
+                        <h3>Estado Actual</h3>
+                        <div id="cash-status" style="font-size: 1.2rem; line-height: 2;">Cargando estado...</div>
+                    </div>
+                    <div class="card">
+                        <h3>Operaciones</h3>
+                        <div class="form-group">
+                            <label>Monto Inicial / Cierre</label>
+                            <input type="number" id="cash-amount" class="input">
+                        </div>
+                        <div style="display:flex; gap:10px;">
+                            <button class="btn btn-primary" onclick="app.openCash()">Abrir Caja</button>
+                            <button class="btn btn-danger" onclick="app.closeCash()">Cerrar Caja</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ALIAS VIEW -->
+            <div id="view-alias" class="view">
+                <h2>🏷️ Gestión de Alias</h2>
+                <div class="grid">
+                    <div class="card">
+                        <h3>Nuevo Alias</h3>
+                        <div class="form-group">
+                            <label>Nombre del Alias</label>
+                            <input type="text" id="alias-name" class="input">
+                        </div>
+                        <div class="form-group">
+                            <label>Límite de Crédito</label>
+                            <input type="number" id="alias-limit" class="input">
+                        </div>
+                        <button class="btn btn-primary" onclick="app.addAlias()">Añadir Alias</button>
+                    </div>
+                    <div class="card">
+                        <h3>Lista de Alias</h3>
+                        <div style="overflow-x: auto;">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Nombre</th>
+                                        <th>Límite</th>
+                                        <th>Acumulado</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="alias-list-body"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SENTINEL VIEW -->
+            <div id="view-sentinel" class="view">
+                <h2>🛡️ Orquestador Sentinel</h2>
+                <div class="grid">
+                    <div class="card">
+                        <h3>Estado del Sistema</h3>
+                        <div id="sentinel-status" style="white-space: pre-wrap; font-family: monospace; background: #eee; padding: 10px; border-radius: 8px;">Cargando...</div>
+                    </div>
+                    <div class="card">
+                        <h3>Control de Versiones</h3>
+                        <div class="form-group">
+                            <label>Nueva Versión</label>
+                            <input type="text" id="sentinel-version" class="input" placeholder="v1.0.1">
+                        </div>
+                        <div class="form-group">
+                            <label>Fuente (URL/Path)</label>
+                            <input type="text" id="sentinel-source" class="input" placeholder="http://...">
+                        </div>
+                        <div style="display:flex; gap:10px;">
+                            <button class="btn btn-primary" onclick="app.updateSentinel()">Actualizar</button>
+                            <button class="btn btn-danger" onclick="app.rollbackSentinel()">Rollback</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SUBSCRIPTION VIEW -->
+            <div id="view-subscription" class="view">
+                <h2>💳 Planes y Suscripciones</h2>
+                <p>Mejora tu plan para obtener más capacidad de empleados y créditos de auditoría.</p>
+                <div class="grid">
+                    <div class="card" style="text-align:center; border-color: var(--border);">
+                        <h3>Plan Free</h3>
+                        <div style="font-size: 1.5rem; font-weight: 800; margin: 10px 0;">$0 <span style="font-size: 0.9rem; font-weight: 400;">/永久</span></div>
+                        <ul style="list-style:none; padding:0; margin: 20px 0; text-align:left; font-size:0.9rem; color:var(--text-muted);">
+                            <li>✅ 1 Empleado</li>
+                            <li>✅ 10 Créditos iniciales</li>
+                            <li>✅ Acceso Básico</li>
+                        </ul>
+                        <button class="btn btn-secondary" style="width:100%" onclick="app.updatePlan('FREE', 0)">Seleccionar</button>
+                    </div>
+                    <div class="card" style="text-align:center; border-color: var(--primary);">
+                        <h3>Pack Basic</h3>
+                        <div style="font-size: 1.5rem; font-weight: 800; margin: 10px 0;">$10,000 <span style="font-size: 0.9rem; font-weight: 400;">ARS</span></div>
+                        <ul style="list-style:none; padding:0; margin: 20px 0; text-align:left; font-size:0.9rem; color:var(--text-muted);">
+                            <li>✅ 5 Empleados</li>
+                            <li>✅ 50 Créditos</li>
+                            <li>✅ Soporte vía Email</li>
+                        </ul>
+                        <button class="btn btn-primary" style="width:100%" onclick="app.updatePlan('BASIC', 50)">Seleccionar</button>
+                    </div>
+                    <div class="card" style="text-align:center; border-color: var(--primary); box-shadow: 0 0 15px rgba(99,102,241,0.3);">
+                        <div style="background: var(--primary); color: white; font-size: 0.7rem; padding: 4px; border-radius: 8px; display: inline-block; margin-bottom: 10px;">MÁS POPULAR</div>
+                        <h3>Pack Pro</h3>
+                        <div style="font-size: 1.5rem; font-weight: 800; margin: 10px 0;">$25,000 <span style="font-size: 0.9rem; font-weight: 400;">ARS</span></div>
+                        <ul style="list-style:none; padding:0; margin: 20px 0; text-align:left; font-size:0.9rem; color:var(--text-muted);">
+                            <li>✅ 15 Empleados</li>
+                            <li>✅ 200 Créditos</li>
+                            <li>✅ Reportes Avanzados</li>
+                        </ul>
+                        <button class="btn btn-primary" style="width:100%" onclick="app.updatePlan('PRO', 200)">Seleccionar</button>
+                    </div>
+                    <div class="card" style="text-align:center; border-color: var(--border);">
+                        <h3>Pack Enterprise</h3>
+                        <div style="font-size: 1.5rem; font-weight: 800; margin: 10px 0;">$50,000 <span style="font-size: 0.9rem; font-weight: 400;">ARS</span></div>
+                        <ul style="list-style:none; padding:0; margin: 20px 0; text-align:left; font-size:0.9rem; color:var(--text-muted);">
+                            <li>✅ Empleados Ilimitados</li>
+                            <li>✅ 1000 Créditos</li>
+                            <li>✅ Soporte Prioritario 24/7</li>
+                        </ul>
+                        <button class="btn btn-primary" style="width:100%" onclick="app.updatePlan('ENTERPRISE', 1000)">Seleccionar</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PERSONNEL VIEW -->
+            <div id="view-personnel" class="view">
+                <h2>👥 Gestión de Personal</h2>
+                <div class="grid">
+                    <div class="card">
+                        <h3>Invitar Nuevo Empleado</h3>
+                        <div class="form-group">
+                            <label>Usuario</label>
+                            <input type="text" id="emp-user" class="input">
+                        </div>
+                        <div class="form-group">
+                            <label>Contraseña Temporal</label>
+                            <div class="password-container">
+                                <input type="password" id="emp-pass" class="input">
+                                <button type="button" class="password-toggle" onclick="app.togglePassword('emp-pass')">👁️</button>
+                            </div>
+                        </div>
+                        <button class="btn btn-primary" onclick="app.inviteEmployee()">➕ Invitar Empleado</button>
+                    </div>
+                    <div class="card">
+                        <h3>Lista de Personal</h3>
+                        <div style="overflow-x: auto;">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Usuario</th>
+                                        <th>Rol</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="personnel-list"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MASTER ADMIN VIEW (HIDDEN) -->
+            <div id="view-admin-master" class="view">
+                <h2 style="color: var(--primary)">👑 Panel Maestro de Control Global</h2>
+                <div class="card">
+                    <h3>Lista de Clientes y Usuarios</h3>
+                    <div style="overflow-x: auto;">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Negocio</th>
+                                    <th>Usuario</th>
+                                    <th>Plan</th>
+                                    <th>Créditos</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="master-users-list"></tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="card" style="max-width: 500px; margin: 0 auto;">
+                    <h3>🛠️ Herramientas de Gestión Rápidas</h3>
+                    <div class="form-group">
+                        <label>Tenant ID / User ID</label>
+                        <input type="text" id="master-target-id" class="input">
+                    </div>
+                    <div class="form-group">
+                        <label>Nuevo Plan</label>
+                        <select id="master-new-plan" class="input">
+                            <option value="FREE">FREE</option>
+                            <option value="BASIC">BASIC</option>
+                            <option value="PRO">PRO</option>
+                            <option value="ENTERPRISE">ENTERPRISE</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Sumar Créditos</label>
+                        <input type="number" id="master-add-credits" class="input" value="0">
+                    </div>
+                    <button class="btn btn-primary" style="width: 100%" onclick="app.masterUpdateSubscription()">Actualizar Cliente</button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- MODALS -->
+    <div id="modal-product" class="modal hidden" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); display:flex; align-items:center; justify-content:center; z-index:1000;">
+        <div class="card" style="width: 400px; max-width: 90%;">
+            <h3 id="modal-title">Nuevo Producto</h3>
+            <div class="form-group">
+                <label>Código</label>
+                <input type="text" id="p-code" class="input">
+            </div>
+            <div class="form-group">
+                <label>Nombre</label>
+                <input type="text" id="p-name" class="input">
+            </div>
+            <div class="form-group">
+                <label>Precio ($)</label>
+                <input type="number" id="p-price" class="input" step="0.01">
+            </div>
+            <div class="form-group">
+                <label>Cantidad</label>
+                <input type="number" id="p-qty" class="input">
+            </div>
+            <div class="form-group">
+                <label>Categoría</label>
+                <input type="text" id="p-cat" class="input">
+            </div>
+            <div class="form-group" style="display:flex; align-items:center; gap:10px;">
+                <input type="checkbox" id="p-weight">
+                <label style="margin:0">Venta por Peso (Kilos)</label>
+            </div>
+            <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:20px;">
+                <button class="btn btn-secondary" onclick="app.closeModal('modal-product')">Cancelar</button>
+                <button class="btn btn-primary" onclick="app.saveProduct()">Guardar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Checkout Modal -->
+    <div id="modal-checkout" class="modal hidden" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); display:flex; align-items:center; justify-content:center; z-index:1000;">
+        <div class="card" style="width: 400px; max-width: 90%;">
+            <h3>Finalizar Cobro</h3>
+            <div class="form-group">
+                <label>Método de Pago</label>
+                <select id="pay-method" class="input" onchange="app.togglePaymentFields()">
+                    <option value="Efectivo">Efectivo</option>
+                    <option value="Transferencia">Transferencia</option>
+                    <option value="Tarjeta">Tarjeta</option>
+                </select>
+            </div>
+            <div id="cash-fields" class="form-group">
+                <label>Paga con ($)</label>
+                <input type="number" id="pay-amount" class="input" oninput="app.calcChange()">
+            </div>
+            <div id="alias-fields" class="form-group hidden">
+                <label>Alias / QR</label>
+                <input type="text" id="pay-alias" class="input">
+            </div>
+            <div style="text-align:right; font-size: 1.2rem; font-weight:bold; margin: 20px 0;">
+                Vuelto: <span id="pay-change">$0.00</span>
+            </div>
+            <div style="display:flex; justify-content:flex-end; gap:10px;">
+                <button class="btn btn-secondary" onclick="app.closeModal('modal-checkout')">Volver</button>
+                <button class="btn btn-primary" onclick="app.confirmSale()">Confirmar Venta ✅</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="command-bar">
+        <span style="color: var(--primary); font-weight: bold;">&gt;</span>
+        <input type="text" id="cmd-input" class="command-input" placeholder="Escribe un comando (ej: stock.list)..." onkeydown="if(event.key==='Enter') app.execCommand(this.value)">
+    </div>
+
+    <!-- Loader de pantalla -->
+    <div id="app-loader" class="hidden" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(255,255,255,0.7); display:flex; align-items:center; justify-content:center; z-index:2000; font-weight:bold; color:var(--primary);">
+        Cargando...
+    </div>
+
+    <script>
+        const API_BASE = '';
+        
+        // Función de utilidad para evitar llamadas excesivas a la API
+        function debounce(func, wait = 300) {
+            let timeout;
+            return function(...args) {
+                clearTimeout(timeout);
+                timeout = setTimeout(() => func.apply(this, args), wait);
+            };
+        }
+
+        const app = {
+            state: {
+                currentView: localStorage.getItem('current_view') || 'view-login',
+                token: localStorage.getItem('session_token'),
+                user: JSON.parse(localStorage.getItem('user_data')),
+                role: localStorage.getItem('user_role') || 'empleado',
+                isPro: false,
+                theme: 'light',
+                lang: 'es',
+                cart: [],
+                translations: {}
+            },
+
+            async init() {
+                console.log("🚀 Stock Pro: Iniciando aplicación...");
+                try {
+                    await this.loadConfig();
+                    await this.loadTranslations();
+                    this.applyTheme();
+                    this.applyTranslations();
+                    
+                    if (this.state.token) {
+                        console.log("✅ Sesión activa detectada.");
+                        this.setupAuthenticatedUI();
+                        this.loadStock();
+                        // Recuperar vista guardada o ir a stock
+                        const targetView = (this.state.currentView && this.state.currentView !== 'view-login') 
+                            ? this.state.currentView 
+                            : 'view-stock';
+                        this.switchView(targetView);
+                    } else {
+                        console.log("🔑 No hay sesión activa, redirigiendo al Login.");
+                        this.switchView('view-login');
+                    }
+                } catch (e) {
+                    console.error("❌ Error crítico durante la inicialización:", e);
+                    alert("Error al cargar la aplicación. Por favor, revisa la consola.");
+                }
+            },
+
+            setupAuthenticatedUI() {
+                // Mostrar menú de personal si es Dueño
+                if (this.state.role === 'OWNER') {
+                    document.getElementById('nav-personnel').classList.remove('hidden');
+                }
+                
+                // Actualizar info de usuario y suscripción
+                const userInfo = document.getElementById('user-info');
+                if (userInfo && this.state.user) {
+                    let masterButton = '';
+                    if (this.state.user.id === 'master_id') {
+                        masterButton = `<button onclick="app.switchView('view-admin-master')" style="border:1px solid var(--primary); background:none; cursor:pointer; color:var(--primary); font-size:0.7rem; font-weight:bold; padding:2px 5px; border-radius:4px; margin-left:5px;">👑 Master</button>`;
+                    }
+
+                    userInfo.innerHTML = `
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                            <strong>👤 ${this.state.user.username}</strong>
+                            <div style="display:flex; gap:5px; align-items:center;">
+                                ${masterButton}
+                                <button onclick="app.logout()" style="border:none; background:none; cursor:pointer; color:var(--error); font-size:0.7rem; font-weight:bold; padding:0;">Salir</button>
+                            </div>
+                        </div>
+                        <span style="color: var(--text-muted)">Plan: ${this.state.user.plan || 'FREE'}</span><br>
+                        <span style="color: var(--primary)">🪙 Créditos: ${this.state.user.credits || 0}</span>
+                    `;
+                }
+
+                document.getElementById('sidebar').style.display = 'flex';
+                document.querySelector('.command-bar').style.display = 'flex';
+            },
+
+            async loadConfig() {
+                try {
+                    const res = await fetch(`${API_BASE}/api/config`);
+                    const data = await res.json();
+                    if (data.status === 'success') {
+                        this.state.version = data.data.version;
+                        const badge = document.getElementById('version-badge');
+                        if (badge) {
+                            const isPro = data.data.is_pro || false;
+                            badge.innerText = isPro ? '🚀 PRO VERSION' : '✨ FREE VERSION';
+                            badge.style.backgroundColor = isPro ? 'var(--primary)' : 'var(--secondary)';
+                            badge.style.color = 'white';
+                        }
+                    }
+                } catch (e) { console.error("Config load error", e); }
+            },
+
+            async loadTranslations() {
+                try {
+                    const res = await fetch(`/src/ui/lang/${this.state.lang}.json`);
+                    this.state.translations = await res.json();
+                } catch (e) { console.error("Lang load error", e); }
+            },
+
+            applyTranslations() {
+                document.querySelectorAll('[data-i18n]').forEach(el => {
+                    const key = el.getAttribute('data-i18n');
+                    el.innerText = this.state.translations[key] || key;
+                });
+            },
+
+            toggleSidebar() {
+                const sidebar = document.getElementById('sidebar');
+                const overlay = document.getElementById('sidebar-overlay');
+                sidebar.classList.toggle('open');
+                overlay.classList.toggle('active');
+            },
+
+            async setTheme(themeName) {
+                this.state.theme = themeName;
+                try {
+                    await this.apiCall('sys.theme.set', { value: themeName });
+                    this.applyTheme();
+                } catch (e) { console.error(e); }
+            },
+
+            async applyTheme() {
+                try {
+                    const res = await fetch(`/src/ui/themes/${this.state.theme}.json`);
+                    const theme = await res.json();
+                    const root = document.documentElement;
+                    for (const [key, value] of Object.entries(theme)) {
+                        root.style.setProperty(`--${key}`, value);
+                    }
+                } catch (e) { console.error(e); }
+            },
+
+            async setLang(langCode) {
+                this.state.lang = langCode;
+                try {
+                    await this.apiCall('sys.lang.set', { value: langCode });
+                    await this.loadTranslations();
+                    this.applyTranslations();
+                } catch (e) { console.error(e); }
+            },
+
+            async updatePlan(plan, credits) {
+                const res = await this.apiCall('sys.subscription.update', { 
+                    tenant_id: this.state.user.tenant_id, 
+                    plan: plan, 
+                    credits: credits 
+                });
+                if (res.status === 'success') {
+                    alert(`¡Plan actualizado a ${plan} exitosamente!`);
+                    await this.loadSubscription();
+                } else {
+                    alert(res.message);
+                }
+            },
+
+            async loadSubscription() {
+                // Actualizamos los datos del usuario desde el servidor para reflejar el nuevo plan/créditos
+                const res = await this.apiCall('debug.call', { 
+                    service: 'auth', 
+                    method: 'login', 
+                    args: { username: this.state.user.username, password: 'dummy_pass' } // Simplificación para demo
+                });
+                // En un flujo real, volveríamos a llamar a un endpoint /me o refrescaríamos el token.
+                // Para efectos de la UI, forzamos la actualización del badge y el info panel.
+                if (this.state.user) {
+                    const tenant = await this.apiCall('debug.call', { 
+                        service: 'auth', 
+                        method: 'resolve_tenant_db', 
+                        args: { tenant_id: this.state.user.tenant_id } 
+                    });
+                    // Como resolve_tenant_db solo devuelve la ruta, usamos debug.call para obtener el plan actual.
+                    const planRes = await this.apiCall('debug.call', { 
+                        service: 'auth', 
+                        method: 'login', 
+                        args: { username: this.state.user.username, password: 'dummy_pass' } 
+                    });
+                    // Para simplificar la demo, actualizamos el estado local basado en el éxito del comando updatePlan
+                    this.setupAuthenticatedUI();
+                }
+            },
+
+            switchView(viewId) {
+                this.state.currentView = viewId;
+                document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+                document.getElementById(viewId).classList.add('active');
+                
+                document.querySelectorAll('.nav-item').forEach(item => {
+                    item.classList.toggle('active', item.getAttribute('data-view') === viewId);
+                });
+
+                if (viewId === 'view-personnel') {
+                    this.loadPersonnel();
+                }
+                if (viewId === 'view-subscription') {
+                    this.loadSubscription();
+                }
+
+                // Ocultar UI global en pantallas de Auth
+                const isAuthView = (viewId === 'view-login' || viewId === 'view-register');
+                document.getElementById('sidebar').style.display = isAuthView ? 'none' : 'flex';
+                document.querySelector('.command-bar').style.display = isAuthView ? 'none' : 'flex';
+            },
+
+            async apiCall(command, params = {}) {
+                this.showLoader();
+                try {
+                    const headers = { 'Content-Type': 'application/json' };
+                    if (this.state.token) {
+                        headers['Authorization'] = this.state.token;
+                    }
+
+                    const response = await fetch(`${API_BASE}/`, {
+                        method: 'POST',
+                        headers: headers,
+                        body: JSON.stringify({
+                            command,
+                            params,
+                            role: this.state.role,
+                            is_pro: this.state.isPro
+                        })
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error(`Server responded with ${response.status}: ${response.statusText}`);
+                    }
+
+                    const res = await response.json();
+                    return res.payload || res;
+                } catch (e) {
+                    console.error("API Error:", e);
+                    return { status: "error", message: `Error de conexión: ${e.message}` };
+                } finally {
+                    this.hideLoader();
+                }
+            },
+
+
+            showLoader() { document.getElementById('app-loader').classList.remove('hidden'); },
+            hideLoader() { document.getElementById('app-loader').classList.add('hidden'); },
+
+            // --- AUTH METHODS ---
+
+            // --- AUTH METHODS ---
+
+            async login() {
+                const user = document.getElementById('login-user').value;
+                const pass = document.getElementById('login-pass').value;
+                const res = await this.apiCall('auth.login', { username: user, password: pass });
+                
+                if (res.status === 'success') {
+                    this.state.token = res.token;
+                    this.state.user = res.user;
+                    this.state.role = res.user.role;
+                    
+                    localStorage.setItem('session_token', res.token);
+                    localStorage.setItem('user_data', JSON.stringify(res.user));
+                    localStorage.setItem('user_role', res.user.role);
+                    
+                    this.setupAuthenticatedUI();
+                    this.loadStock();
+                    this.switchView('view-stock');
+                } else {
+                    alert(res.message);
+                }
+            },
+
+            async registerOwner() {
+                const biz = document.getElementById('reg-business').value;
+                const user = document.getElementById('reg-user').value;
+                const pass = document.getElementById('reg-pass').value;
+                const res = await this.apiCall('auth.register_owner', { 
+                    business_name: biz, 
+                    username: user, 
+                    password: pass 
+                });
+                
+                if (res.status === 'success') {
+                    alert("Negocio registrado con éxito. Ahora puedes iniciar sesión.");
+                    this.switchView('view-login');
+                } else {
+                    alert(res.message);
+                }
+            },
+
+            async logout() {
+                await this.apiCall('auth.logout', { token: this.state.token });
+                localStorage.clear();
+                this.state.token = null;
+                this.state.user = null;
+                this.state.role = 'empleado';
+                this.switchView('view-login');
+            },
+
+            togglePassword(inputId) {
+                const input = document.getElementById(inputId);
+                const button = input.nextElementSibling;
+                if (input.type === 'password') {
+                    input.type = 'text';
+                    button.innerText = '🙈';
+                } else {
+                    input.type = 'password';
+                    button.innerText = '👁️';
+                }
+            },
+
+            // --- PERSONNEL MANAGEMENT ---
+
+            async inviteEmployee() {
+                const user = document.getElementById('emp-user').value.trim();
+                const pass = document.getElementById('emp-pass').value;
+                
+                if (!user || !pass) {
+                    alert("Por favor, ingrese usuario y contraseña");
+                    return;
+                }
+
+                const res = await this.apiCall('user.invite_employee', { 
+                    username: user, 
+                    password: pass, 
+                    tenant_id: this.state.user.tenant_id 
+                });
+                
+                if (res.status === 'success') {
+                    alert("Empleado agregado correctamente ✅");
+                    document.getElementById('emp-user').value = '';
+                    document.getElementById('emp-pass').value = '';
+                    this.loadPersonnel();
+                } else {
+                    alert("Error al invitar empleado: " + res.message);
+                }
+            },
+
+            async setPermission(userId, permKey, granted) {
+                const res = await this.apiCall('user.set_permission', { 
+                    tenant_id: this.state.user.tenant_id, 
+                    user_id: userId, 
+                    permission_key: permKey, 
+                    granted: granted 
+                });
+                if (res.status === 'success') this.loadPersonnel();
+                else alert(res.message);
+            },
+
+            async revokeAccess(userId) {
+                if (!confirm("¿Estás seguro de revocar el acceso a este usuario?")) return;
+                const res = await this.apiCall('user.revoke_access', { user_id: userId });
+                if (res.status === 'success') this.loadPersonnel();
+                else alert(res.message);
+            },
+
+            async loadPersonnel() {
+                const res = await this.apiCall('user.list', { tenant_id: this.state.user.tenant_id });
+                const container = document.getElementById('personnel-list');
+                container.innerHTML = '';
+                
+                if (res.status === 'success') {
+                    res.data.forEach(u => {
+                        const row = `<tr>
+                            <td>${u.username}</td>
+                            <td><span class="badge badge-success">${u.role}</span></td>
+                            <td>
+                                <button class="btn btn-secondary" style="padding:4px 8px" onclick="app.promptPermission('${u.id}')">🔑 Permiso</button>
+                                <button class="btn btn-danger" style="padding:4px 8px" onclick="app.revokeAccess('${u.id}')">🗑️</button>
+                            </td>
+                        </tr>`;
+                        container.innerHTML += row;
+                    });
+                } else {
+                    container.innerHTML = `<p style="color:var(--error)">Error cargando personal: ${res.message}</p>`;
+                }
+            },
+
+            async promptPermission(userId) {
+                const permKey = prompt("Ingrese la llave del permiso (ej: perm_stock_read, perm_sales_create):");
+                if (!permKey) return;
+                const granted = confirm(`¿Desea CONCEDER el permiso ${permKey}? (Cancelar para revocar)`);
+                await this.setPermission(userId, permKey, granted);
+            },
+
+            async loadStock() {
+                const filter = document.getElementById('stock-search').value;
+                const res = await this.apiCall('stock.list', { filter });
+                const tbody = document.getElementById('stock-table-body');
+                tbody.innerHTML = '';
+                
+                if (res.status === 'success') {
+                    res.data.forEach(p => {
+                        const row = `<tr>
+                            <td>${p.codigo}</td>
+                            <td>${p.nombre}</td>
+                            <td>${p.categoria}</td>
+                            <td>$${p.precio.toFixed(2)}</td>
+                            <td>${p.es_peso ? p.cantidad.toFixed(3)+' kg' : p.cantidad}</td>
+                            <td>
+                                <button class="btn btn-secondary" style="padding:4px 8px" onclick="app.editProduct('${p.codigo}')">✏️</button>
+                                <button class="btn btn-danger" style="padding:4px 8px" onclick="app.deleteProduct('${p.codigo}')">🗑️</button>
+                            </td>
+                        </tr>`;
+                        tbody.innerHTML += row;
+                    });
+                }
+            },
+
+            // Crear versiones debounced para los inputs
+            setupDebouncedHandlers() {
+                this.debouncedLoadStock = debounce(() => this.loadStock());
+                this.debouncedQuickAdd = debounce(() => this.quickAddProduct());
+            },
+
+            showModal(id) { document.getElementById(id).classList.remove('hidden'); },
+            closeModal(id) { document.getElementById(id).classList.add('hidden'); },
+
+            async saveProduct() {
+                const params = {
+                    codigo: document.getElementById('p-code').value,
+                    nombre: document.getElementById('p-name').value,
+                    precio: parseFloat(document.getElementById('p-price').value),
+                    cantidad: parseFloat(document.getElementById('p-qty').value),
+                    categoria: document.getElementById('p-cat').value,
+                    es_peso: document.getElementById('p-weight').checked
+                };
+                const res = await this.apiCall('stock.add', params);
+                if (res.status === 'success') {
+                    this.closeModal('modal-product');
+                    this.loadStock();
+                } else { alert(res.message); }
+            },
+
+            async editProduct(code) {
+                const res = await this.apiCall('stock.get', { codigo: code });
+                if (res.status === 'success') {
+                    const p = res.data;
+                    document.getElementById('p-code').value = p.codigo;
+                    document.getElementById('p-name').value = p.nombre;
+                    document.getElementById('p-price').value = p.precio;
+                    document.getElementById('p-qty').value = p.cantidad;
+                    document.getElementById('p-cat').value = p.categoria;
+                    document.getElementById('p-weight').checked = p.es_peso;
+                    document.getElementById('modal-title').innerText = "Editar Producto";
+                    this.showModal('modal-product');
+                }
+            },
+
+            async deleteProduct(code) {
+                if (confirm('¿Eliminar este producto?')) {
+                    const res = await this.apiCall('stock.delete', { codigo: code });
+                    if (res.status === 'success') this.loadStock();
+                }
+            },
+
+            async quickAddProduct() {
+                const code = document.getElementById('sale-scan').value;
+                if (code.length < 3) return;
+                const res = await this.apiCall('venta.add', { codigo: code });
+                if (res.status === 'success') {
+                    this.state.cart.push(res.data);
+                    this.renderCart();
+                    document.getElementById('sale-scan').value = '';
+                }
+            },
+
+            renderCart() {
+                const container = document.getElementById('cart-items');
+                container.innerHTML = '';
+                let total = 0;
+                
+                this.state.cart.forEach((item, idx) => {
+                    const subtotal = item.precio * (item.cantidad || 1);
+                    total += subtotal;
+                    container.innerHTML += `
+                        <div style="display:flex; justify-content:space-between; margin-bottom:8px; padding:8px; background:var(--background); border-radius:8px; font-size:0.9rem;">
+                            <span>${item.nombre} x ${item.cantidad || 1}</span>
+                            <span>$${subtotal.toFixed(2)} <button onclick="app.removeFromCart(${idx})" style="border:none; background:none; cursor:pointer; color:var(--error)">🗑️</button></span>
+                        </div>
+                    `;
+                });
+                document.getElementById('cart-total').innerText = `$${total.toFixed(2)}`;
+            },
+
+            removeFromCart(idx) {
+                this.state.cart.splice(idx, 1);
+                this.renderCart();
+            },
+
+            openCheckout() {
+                if (this.state.cart.length === 0) return alert("Carrito vacío");
+                this.showModal('modal-checkout');
+            },
+
+            togglePaymentFields() {
+                const method = document.getElementById('pay-method').value;
+                document.getElementById('cash-fields').classList.toggle('hidden', method !== 'Efectivo');
+                document.getElementById('alias-fields').classList.toggle('hidden', method !== 'Transferencia');
+            },
+
+            calcChange() {
+                const total = parseFloat(document.getElementById('cart-total').innerText.replace('$', ''));
+                const paga = parseFloat(document.getElementById('pay-amount').value || 0);
+                document.getElementById('pay-change').innerText = `$${(paga - total).toFixed(2)}`;
+            },
+
+            async confirmSale() {
+                const params = {
+                    cliente: "Cliente General",
+                    items: this.state.cart.map(i => ({codigo: i.codigo, cantidad: i.cantidad || 1})),
+                    metodo_pago: document.getElementById('pay-method').value,
+                    paga_con: parseFloat(document.getElementById('pay-amount').value || 0),
+                    alias: document.getElementById('pay-alias').value
+                };
+                const res = await this.apiCall('venta.cobrar', params);
+                if (res.status === 'success') {
+                    alert("Venta Exitosa ✅");
+                    this.state.cart = [];
+                    this.renderCart();
+                    this.closeModal('modal-checkout');
+                } else { alert(res.message); }
+            },
+
+            // --- CASH METHODS ---
+            async loadCashStatus() {
+                const res = await this.apiCall('caja.status');
+                const statusDiv = document.getElementById('cash-status');
+                if (res.status === 'success') {
+                    const s = res.data;
+                    statusDiv.innerHTML = `
+                        <strong>Estado:</strong> ${s.abierta ? '🟢 Abierta' : '🔴 Cerrada'}<br>
+                        <strong>Efectivo Inicial:</strong> $${s.efectivo_inicial || 0}<br>
+                        <strong>Ventas Efectivo:</strong> $${s.ventas_efectivo || 0}<br>
+                        <strong>Ventas Digital:</strong> $${s.ventas_digital || 0}
+                    `;
+                } else {
+                    statusDiv.innerText = "Error cargando estado: " + res.message;
+                }
+            },
+            async openCash() {
+                const amt = parseFloat(document.getElementById('cash-amount').value || 0);
+                const res = await this.apiCall('caja.abrir', { monto_inicial: amt });
+                if (res.status === 'success') {
+                    alert("Caja abierta ✅");
+                    this.loadCashStatus();
+                } else alert(res.message);
+            },
+            async closeCash() {
+                const amt = parseFloat(document.getElementById('cash-amount').value || 0);
+                const res = await this.apiCall('caja.cerrar', { monto_real: amt });
+                if (res.status === 'success') {
+                    alert("Caja cerrada ✅");
+                    this.loadCashStatus();
+                } else alert(res.message);
+            },
+
+            // --- ALIAS METHODS ---
+            async addAlias() {
+                const name = document.getElementById('alias-name').value;
+                const limit = parseFloat(document.getElementById('alias-limit').value || 0);
+                const res = await this.apiCall('alias.add', { nombre: name, limite: limit });
+                if (res.status === 'success') {
+                    alert("Alias creado ✅");
+                    this.loadAliasList();
+                } else alert(res.message);
+            },
+            async loadAliasList() {
+                const res = await this.apiCall('alias.list');
+                const tbody = document.getElementById('alias-list-body');
+                tbody.innerHTML = '';
+                if (res.status === 'success') {
+                    res.data.forEach(a => {
+                        tbody.innerHTML += `
+                            <tr>
+                                <td>${a.nombre}</td>
+                                <td>$${a.limite}</td>
+                                <td>$${a.acumulado}</td>
+                                <td>
+                                    <button class="btn btn-danger" style="padding:4px 8px" onclick="app.deleteAlias('${a.id}')">🗑️</button>
+                                </td>
+                            </tr>`;
+                    });
+                }
+            },
+            async deleteAlias(id) {
+                if (!confirm("¿Eliminar este alias?")) return;
+                const res = await this.apiCall('alias.delete', { alias_id: id });
+                if (res.status === 'success') this.loadAliasList();
+                else alert(res.message);
+            },
+
+            async handleFileUpload(input) {
+                const file = input.files[0];
+                if (!file) return;
+
+                const logDiv = document.getElementById('import-log');
+                const statusDiv = document.getElementById('import-status');
+                const runBtn = document.getElementById('btn-run-import');
+                
+                logDiv.innerHTML = `Subiendo archivo ${file.name}...<br>`;
+                statusDiv.innerText = "Subiendo...";
+                statusDiv.style.color = "var(--text-muted)";
+
+                const formData = new FormData();
+                formData.append('file', file);
+
+                try {
+                    const response = await fetch(`${API_BASE}/api/upload`, {
+                        method: 'POST',
+                        body: formData
+                    });
+                    const res = await response.json();
+
+                    if (res.payload && res.payload.status === 'success') {
+                        this.state.lastUploadedPath = res.payload.path;
+                        logDiv.innerHTML += `<span style="color: var(--success)">✅ Archivo subido: ${res.payload.path}</span><br>`;
+                        statusDiv.innerText = "Archivo listo para procesar";
+                        statusDiv.style.color = "var(--success)";
+                        runBtn.disabled = false;
+                    } else {
+                        throw new Error(res.payload?.message || "Error en la subida");
+                    }
+                } catch (e) {
+                    logDiv.innerHTML += `<span style="color: var(--error)">❌ Error al subir: ${e.message}</span><br>`;
+                    statusDiv.innerText = "Error al subir archivo";
+                    statusDiv.style.color = "var(--error)";
+                    runBtn.disabled = true;
+                }
+            },
+
+            async applyManualMapping() {
+                const mapping = {};
+                const fields = ['codigo', 'nombre', 'precio', 'cantidad', 'categoria', 'es_peso'];
+                
+                fields.forEach(field => {
+                    const select = document.getElementById(`map-select-${field}`);
+                    if (select) mapping[field] = select.value;
+                });
+
+                this.closeModal('modal-mapping');
+                
+                // Volvemos a solicitar la previsualización, pero ahora pasando el custom_mapping
+                const filePath = this.state.lastUploadedPath;
+                const logDiv = document.getElementById('import-log');
+                
+                logDiv.innerHTML += "Aplicando mapeo manual...<br>";
+                
+                const res = await this.apiCall('stock.import.preview', { 
+                    file_path: filePath, 
+                    custom_mapping: mapping 
+                });
+
+                if (res.status === 'success') {
+                    logDiv.innerHTML += `<span style="color: var(--success)">✅ Mapeo aplicado. ${res.count} filas detectadas.</span><br>`;
+                    this.renderImportPreview(res.data);
+                } else {
+                    alert("Error al aplicar mapeo: " + res.message);
+                }
+            },
+
+            showManualMapping(headers, sampleData) {
+                const table = document.getElementById('mapping-sample-table');
+                const selectorsDiv = document.getElementById('mapping-selectors');
+                
+                // 1. Renderizar tabla de ejemplo
+                let html = '<thead><tr>';
+                headers.forEach(h => html += `<th>${h}</th>`);
+                html += '</tr></thead><tbody><tr>';
+                
+                if (sampleData && sampleData.length > 0) {
+                    const firstRow = sampleData[0];
+                    headers.forEach(h => html += `<td>${firstRow[h] || ''}</td>`);
+                }
+                html += '</tr></tbody>';
+                table.innerHTML = html;
+
+                // 2. Renderizar selectores
+                const fields = [
+                    { id: 'codigo', label: 'Código / SKU' },
+                    { id: 'nombre', label: 'Nombre Producto' },
+                    { id: 'precio', label: 'Precio' },
+                    { id: 'cantidad', label: 'Cantidad / Stock' },
+                    { id: 'categoria', label: 'Categoría' },
+                    { id: 'es_peso', label: 'Venta por Peso?' },
+                ];
+
+                selectorsDiv.innerHTML = '';
+                fields.forEach(f => {
+                    let options = `<option value="">-- Seleccionar --</option>`;
+                    headers.forEach(h => options += `<option value="${h}">${h}</option>`);
+                    
+                    selectorsDiv.innerHTML += `
+                        <div class="form-group" style="margin-bottom:0">
+                            <label>${f.label}</label>
+                            <select id="map-select-${f.id}" class="input">${options}</select>
+                        </div>
+                    `;
+                });
+
+                this.showModal('modal-mapping');
+            },
+
+            renderImportPreview(data) {
+                const container = document.getElementById('import-preview-container');
+                const tbody = document.getElementById('import-preview-body');
+                tbody.innerHTML = '';
+                
+                data.forEach((item, idx) => {
+                    if (item.error) {
+                        tbody.innerHTML += `<tr style="background: #fee2e2">
+                            <td>${item.row}</td>
+                            <td colspan="6" style="color: var(--error)">Error: ${item.error}</td>
+                        </tr>`;
+                        return;
+                    }
+
+                    const m = item.mapped;
+                    tbody.innerHTML += `
+                        <tr>
+                            <td>${item.row}</td>
+                            <td><input type="text" class="input" value="${m.codigo || ''}" data-field="codigo"></td>
+                            <td><input type="text" class="input" value="${m.nombre || ''}" data-field="nombre"></td>
+                            <td><input type="number" class="input" value="${m.precio || 0}" step="0.01" data-field="precio"></td>
+                            <td><input type="number" class="input" value="${m.cantidad || 0}" step="0.001" data-field="cantidad"></td>
+                            <td><input type="text" class="input" value="${m.categoria || ''}" data-field="categoria"></td>
+                            <td><input type="checkbox" ${m.es_peso ? 'checked' : ''} data-field="es_peso"></td>
+                        </tr>
+                    `;
+                });
+
+                container.classList.remove('hidden');
+                container.scrollIntoView({ behavior: 'smooth' });
+            },
+
+            async commitImport() {
+                const rows = document.querySelectorAll('#import-preview-body tr');
+                const dataList = [];
+
+                rows.forEach((row, idx) => {
+                    const inputs = row.querySelectorAll('input');
+                    if (inputs.length === 0) return; // Saltar filas de error
+
+                    const mapped = {};
+                    inputs.forEach(input => {
+                        const field = input.getAttribute('data-field');
+                        if (input.type === 'checkbox') {
+                            mapped[field] = input.checked;
+                        } else if (input.type === 'number') {
+                            mapped[field] = parseFloat(input.value) || 0;
+                        } else {
+                            mapped[field] = input.value;
+                        }
+                    });
+
+                    dataList.push({
+                        row: idx + 1,
+                        mapped: mapped
+                    });
+                });
+
+                if (!confirm(`¿Estás seguro de guardar ${dataList.length} productos en la base de datos?`)) return;
+
+                const res = await this.apiCall('stock.import.commit', { data_list: dataList });
+                
+                if (res.status === 'success') {
+                    alert("Importación completada exitosamente ✅");
+                    document.getElementById('import-preview-container').classList.add('hidden');
+                    this.loadStock();
+                } else {
+                    alert("Error al guardar: " + res.message);
+                }
+            },
+
+            // --- SENTINEL METHODS ---
+            async loadSentinelStatus() {
+                const res = await this.apiCall('sys.sentinel.status');
+                const statusDiv = document.getElementById('sentinel-status');
+                if (res.status === 'success') {
+                    statusDiv.innerText = JSON.stringify(res.data, null, 2);
+                } else {
+                    statusDiv.innerText = "Error: " + res.message;
+                }
+            },
+            async updateSentinel() {
+                const version = document.getElementById('sentinel-version').value;
+                const source = document.getElementById('sentinel-source').value;
+                const res = await this.apiCall('sys.sentinel.update', { version, source });
+                if (res.status === 'success') {
+                    alert("Actualización solicitada ✅");
+                    this.loadSentinelStatus();
+                } else alert(res.message);
+            },
+            async rollbackSentinel() {
+                const res = await this.apiCall('sys.sentinel.rollback');
+                if (res.status === 'success') {
+                    alert("Rollback solicitado ✅");
+                    this.loadSentinelStatus();
+                } else alert(res.message);
+            },
+
+            async execCommand(cmdStr) {
+                const input = document.getElementById('cmd-input');
+                const res = await this.apiCall(cmdStr);
+                alert(JSON.stringify(res, null, 2));
+                input.value = '';
+            },
+
+            async exportCSV() {
+                const res = await this.apiCall('sys.export_csv');
+                if (res.status === 'success') {
+                    // Usamos la nueva ruta de descarga segura del servidor
+                    const downloadUrl = '/download/' + res.path;
+                    
+                    // Crear enlace temporal para forzar descarga
+                    const link = document.createElement('a');
+                    link.href = downloadUrl;
+                    link.download = res.path.split('/').pop();
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    
+                    alert("Iniciando descarga del inventario... ✅");
+                } else { alert(res.message); }
+            },
+
+            async loadMasterUsers() {
+                const res = await this.apiCall('sys.admin.users_list');
+                const tbody = document.getElementById('master-users-list');
+                tbody.innerHTML = '';
+                
+                if (res.status === 'success') {
+                    res.data.forEach(u => {
+                        tbody.innerHTML += `
+                            <tr>
+                                <td>${u.business_name}</td>
+                                <td>${u.username}</td>
+                                <td><span class="badge ${u.plan === 'PRO' ? 'badge-success' : 'badge-error'}">${u.plan}</span></td>
+                                <td>${u.credits}</td>
+                                <td>
+                                    <button class="btn btn-secondary" style="padding:4px 8px" onclick="app.selectMasterTarget('${u.tenant_id}', '${u.user_id}')">🛠️ Gestionar</button>
+                                </td>
+                            </tr>`;
+                    });
+                } else {
+                    tbody.innerHTML = `<tr><td colspan="5" style="color:var(--error)">Error cargando usuarios: ${res.message}</td></tr>`;
+                }
+            },
+
+            selectMasterTarget(tenantId, userId) {
+                document.getElementById('master-target-id').value = tenantId;
+            },
+
+            async masterUpdateSubscription() {
+                const targetId = document.getElementById('master-target-id').value;
+                const plan = document.getElementById('master-new-plan').value;
+                const credits = parseInt(document.getElementById('master-add-credits').value || 0);
+
+                if (!targetId) return alert("Por favor, seleccione un cliente o ingrese un Tenant ID.");
+
+                const res = await this.apiCall('sys.subscription.update', { 
+                    tenant_id: targetId, 
+                    plan: plan, 
+                    credits: credits 
+                });
+
+                if (res.status === 'success') {
+                    alert("Cliente actualizado exitosamente ✅");
+                    this.loadMasterUsers();
+                } else {
+                    alert("Error: " + res.message);
+                }
+            }
+            };
+
+            window.onload = () => app.init();
+            </script>
+            </body>
+            </html>
+
+                  plan: plan, 
+                    credits: credits 
+                });
+                
+                if (res.status === 'success') {
+                    alert("Cliente actualizado exitosamente ✅");
+                    this.loadMasterUsers();
+                } else {
+                    alert("Error: " + res.message);
+                }
+            }
+        };
+
+        window.onload = () => app.init();
+    </script>
+</body>
+</html>
+
+       this.loadMasterUsers();
+                } else {
+                    alert("Error: " + res.message);
+                }
+            }
+        };
+
+        window.onload = () => app.init();
+    </script>
+</body>
+</html>
+
