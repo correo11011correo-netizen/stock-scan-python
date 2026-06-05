@@ -64,7 +64,7 @@ class AuthService:
             SELECT u.*, t.plan, t.credits 
             FROM users u 
             JOIN tenants t ON u.tenant_id = t.id 
-            WHERE u.username = ? AND u.password_hash = ?
+            WHERE u.username = %s AND u.password_hash = %s
             ''', 
             (username, pwd_hash)
         )
@@ -109,7 +109,7 @@ class AuthService:
             return None
         
         tenant = self.global_db.fetch_one(
-            "SELECT schema_name FROM tenants WHERE id = ?", 
+            "SELECT schema_name FROM tenants WHERE id = %s", 
             (tenant_id,)
         )
         return tenant["schema_name"] if tenant else None
@@ -151,20 +151,34 @@ class AuthService:
     def create_owner_account(self, username, password, business_name) -> Dict[str, Any]:
         """
         Crea un nuevo dueño y su respectiva instancia de negocio (Tenant) en PostgreSQL.
+        Valida que el usuario no exista antes de crearlo.
         """
         try:
+            # 1. VALIDAR que el usuario NO existe
+            existing_user = self.global_db.fetch_one(
+                "SELECT id FROM users WHERE username = %s",
+                (username,)
+            )
+            
+            if existing_user:
+                self.logger.warning(f"Intento de crear usuario duplicado: {username}")
+                return {
+                    "status": "error", 
+                    "message": f"El usuario '{username}' ya existe. Intenta con otro nombre."
+                }
+            
             user_id = str(uuid.uuid4())[:8]
             tenant_id = f"tenant_{user_id}"
             # En Postgres, el esquema debe empezar por letra y no tener caracteres especiales complicados
             schema_name = f"schema_{user_id}"
             
-            # 1. Insertar Tenant con su esquema asignado
+            # 2. Insertar Tenant con su esquema asignado
             self.global_db.execute(
                 "INSERT INTO tenants (id, owner_id, schema_name, business_name, plan, credits) VALUES (%s, %s, %s, %s, %s, %s)",
                 (tenant_id, user_id, schema_name, business_name, "FREE", 10)
             )
 
-            # 2. Insertar Usuario como OWNER
+            # 3. Insertar Usuario como OWNER
             self.global_db.execute(
                 "INSERT INTO users (id, username, password_hash, role, tenant_id) VALUES (%s, %s, %s, %s, %s)",
                 (user_id, username, self._hash_password(password), "OWNER", tenant_id)
@@ -184,9 +198,22 @@ class AuthService:
     def create_employee_account(self, username, password, tenant_id) -> Dict[str, Any]:
         """Crea un usuario con rol EMPLOYEE vinculado a un negocio existente."""
         try:
+            # VALIDAR que el usuario NO existe
+            existing_user = self.global_db.fetch_one(
+                "SELECT id FROM users WHERE username = %s",
+                (username,)
+            )
+            
+            if existing_user:
+                self.logger.warning(f"Intento de crear usuario duplicado: {username}")
+                return {
+                    "status": "error", 
+                    "message": f"El usuario '{username}' ya existe. Intenta con otro nombre."
+                }
+            
             user_id = str(uuid.uuid4())[:8]
             self.global_db.execute(
-                "INSERT INTO users (id, username, password_hash, role, tenant_id) VALUES (?, ?, ?, ?, ?)",
+                "INSERT INTO users (id, username, password_hash, role, tenant_id) VALUES (%s, %s, %s, %s, %s)",
                 (user_id, username, self._hash_password(password), "EMPLOYEE", tenant_id)
             )
             return {"status": "success", "user_id": user_id}
@@ -199,7 +226,7 @@ class AuthService:
         try:
             # Actualizar plan y sumar créditos
             self.global_db.execute(
-                "UPDATE tenants SET plan = ?, credits = credits + ? WHERE id = ?",
+                "UPDATE tenants SET plan = %s, credits = credits + %s WHERE id = %s",
                 (new_plan, additional_credits, tenant_id)
             )
             self.logger.info(f"Suscripción actualizada para {tenant_id}: {new_plan}, +{additional_credits} créditos.")
@@ -207,3 +234,4 @@ class AuthService:
         except Exception as e:
             self.logger.error(f"Error updating subscription: {e}")
             return {"status": "error", "message": str(e)}
+

@@ -21,8 +21,8 @@ class SalesService:
         try:
             query = '''
                 UPDATE cash_box SET 
-                    abierta = 1, 
-                    efectivo_inicial = ?, 
+                    abierta = true, 
+                    efectivo_inicial = %s, 
                     ventas_efectivo = 0, 
                     ventas_digital = 0, 
                     hora_apertura = CURRENT_TIMESTAMP,
@@ -47,9 +47,9 @@ class SalesService:
 
             query = '''
                 UPDATE cash_box SET 
-                    abierta = 0, 
+                    abierta = false, 
                     hora_cierre = CURRENT_TIMESTAMP,
-                    monto_cierre_real = ?
+                    monto_cierre_real = %s
                 WHERE id = 1
             '''
             self.db.execute(query, (monto_real,))
@@ -121,7 +121,7 @@ class SalesService:
 
             # 2. Validación de Alias (Límite Inteligente del repo original)
             if metodo_pago == "Transferencia" and alias:
-                alias_data = self.db.fetch_one("SELECT * FROM aliases WHERE nombre = ?", (alias,))
+                alias_data = self.db.fetch_one("SELECT * FROM aliases WHERE nombre = %s", (alias,))
                 if alias_data:
                     if (alias_data['acumulado'] or 0) + total_venta > alias_data['limite']:
                         return {"status": "error", "message": f"Límite excedido para el alias {alias}."}
@@ -142,7 +142,7 @@ class SalesService:
                 # Insertar Venta
                 cursor.execute('''
                     INSERT INTO sales (total, cliente, metodo_pago, paga_con, vuelto)
-                    VALUES (?, ?, ?, ?, ?)
+                    VALUES (%s, %s, %s, %s, %s)
                 ''', (total_venta, cliente, metodo_pago, paga_con, vuelto))
                 sale_id = cursor.lastrowid
                 
@@ -150,18 +150,18 @@ class SalesService:
                 for pi in processed_items:
                     cursor.execute('''
                         INSERT INTO sale_items (sale_id, product_codigo, cantidad, subtotal)
-                        VALUES (?, ?, ?, ?)
+                        VALUES (%s, %s, %s, %s)
                     ''', (sale_id, pi['codigo'], pi['cantidad'], pi['subtotal']))
                 
                 # Actualizar Caja
                 if metodo_pago == "Efectivo":
-                    cursor.execute("UPDATE cash_box SET ventas_efectivo = ventas_efectivo + ? WHERE id = 1", (total_venta,))
+                    cursor.execute("UPDATE cash_box SET ventas_efectivo = ventas_efectivo + %s WHERE id = 1", (total_venta,))
                 else:
-                    cursor.execute("UPDATE cash_box SET ventas_digital = ventas_digital + ? WHERE id = 1", (total_venta,))
+                    cursor.execute("UPDATE cash_box SET ventas_digital = ventas_digital + %s WHERE id = 1", (total_venta,))
                 
                 # Actualizar Alias si aplica
                 if metodo_pago == "Transferencia" and alias:
-                    cursor.execute("UPDATE aliases SET acumulado = acumulado + ? WHERE nombre = ?", (total_venta, alias))
+                    cursor.execute("UPDATE aliases SET acumulado = acumulado + %s WHERE nombre = %s", (total_venta, alias))
                 
                 conn.commit()
 
@@ -190,17 +190,18 @@ class SalesService:
             # Generar un ID simple
             import uuid
             alias_id = str(uuid.uuid4())[:8]
-            self.db.execute("INSERT INTO aliases (id, nombre, limite, acumulado) VALUES (?, ?, ?, 0)", (alias_id, nombre, limite))
+            self.db.execute("INSERT INTO aliases (id, nombre, limite, acumulado) VALUES (%s, %s, %s, 0)", (alias_id, nombre, limite))
             return {"status": "success", "message": f"Alias {nombre} creado."}
         except Exception as e:
             return {"status": "error", "message": str(e)}
 
     def delete_alias(self, alias_id):
         """Elimina un alias del sistema."""
-        self.db.execute("DELETE FROM aliases WHERE id = ?", (alias_id,))
+        self.db.execute("DELETE FROM aliases WHERE id = %s", (alias_id,))
         return {"status": "success", "message": "Alias eliminado."}
 
     def list_aliases(self):
         """Retorna todos los alias y sus consumos."""
         aliases = self.db.fetch_all("SELECT * FROM aliases")
         return {"status": "success", "data": [dict(a) for a in aliases]}
+

@@ -7,7 +7,18 @@ from pathlib import Path
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from threading import Thread
 from datetime import datetime
+from decimal import Decimal
+from email.parser import BytesParser
 from ..commands.dispatcher import CommandDispatcher
+
+class DecimalEncoder(json.JSONEncoder):
+    """Encoder personalizado para serializar Decimal y datetime a tipos JSON-compatibles."""
+    def default(self, obj):
+        if isinstance(obj, Decimal):
+            return float(obj)
+        elif isinstance(obj, datetime):
+            return obj.isoformat()
+        return super().default(obj)
 
 class WebAPIHandler(BaseHTTPRequestHandler):
     """
@@ -35,7 +46,7 @@ class WebAPIHandler(BaseHTTPRequestHandler):
             "payload": data
         }
         self._set_headers(status)
-        self.wfile.write(json.dumps(response).encode())
+        self.wfile.write(json.dumps(response, cls=DecimalEncoder).encode())
 
     def do_OPTIONS(self):
         self._set_headers()
@@ -106,10 +117,10 @@ class WebAPIHandler(BaseHTTPRequestHandler):
                 content_length = int(self.headers['Content-Length'])
                 body = self.rfile.read(content_length)
                 
-                # Simular un mensaje de correo para que el parser de email pueda procesarlo
-                msg = email.message_from_bytes(
-                    f"Content-Type: {content_type}\r\n\r\n".encode() + body,
-                    strict=False
+                # Usar BytesParser sin parámetro strict (removido en Python 3.10)
+                parser = BytesParser()
+                msg = parser.parsebytes(
+                    f"Content-Type: {content_type}\r\n\r\n".encode() + body
                 )
                 
                 file_item = None
@@ -193,9 +204,9 @@ class WebAPIHandler(BaseHTTPRequestHandler):
 
             # 3. Resolución Dinámica de la Base de Datos del Tenant
             tenant_id = user_session["tenant_id"]
-            db_path = self.auth_service.resolve_tenant_db(tenant_id)
+            schema_name = self.auth_service.resolve_tenant_db(tenant_id)
             
-            if not db_path:
+            if not schema_name:
                 return self._json_response({"status": "error", "message": "No se pudo localizar la base de datos del negocio."}, 500)
 
             # Determinar estado PRO basándose en la sesión/tenant, NO en el cliente
@@ -209,7 +220,7 @@ class WebAPIHandler(BaseHTTPRequestHandler):
             from ..core.system_service import SystemService
             from ..commands.dispatcher import CommandDispatcher
 
-            tenant_db = DatabaseManager(db_path=db_path)
+            tenant_db = DatabaseManager(schema_name=schema_name)
             tenant_stock = StockService(tenant_db)
             tenant_sales = SalesService(tenant_db, tenant_stock)
             tenant_sys = SystemService(tenant_db)

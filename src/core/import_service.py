@@ -187,8 +187,9 @@ class ImportService:
 
         try:
             # Usamos la db del stock_service
-            query = "INSERT INTO audit (usuario, accion, detalle) VALUES (?, ?, ?)"
+            query = "INSERT INTO audit (usuario, accion, detalle) VALUES (%s, %s, %s)"
             # Como no tenemos el usuario actual aquí, usamos 'SYSTEM_IMPORT'
             self.stock_service.db.execute(query, ("SYSTEM_IMPORT", accion, detalle))
         except Exception as e:
             self.logger.error(f"Error escribiendo en tabla audit: {e}")
+
