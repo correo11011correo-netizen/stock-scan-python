@@ -8,6 +8,7 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 from threading import Thread
 from datetime import datetime
 from decimal import Decimal
+from email.parser import BytesParser
 from ..commands.dispatcher import CommandDispatcher
 
 class DecimalEncoder(json.JSONEncoder):
@@ -116,10 +117,10 @@ class WebAPIHandler(BaseHTTPRequestHandler):
                 content_length = int(self.headers['Content-Length'])
                 body = self.rfile.read(content_length)
                 
-                # Simular un mensaje de correo para que el parser de email pueda procesarlo
-                msg = email.message_from_bytes(
-                    f"Content-Type: {content_type}\r\n\r\n".encode() + body,
-                    strict=False
+                # Usar BytesParser sin parámetro strict (removido en Python 3.10)
+                parser = BytesParser()
+                msg = parser.parsebytes(
+                    f"Content-Type: {content_type}\r\n\r\n".encode() + body
                 )
                 
                 file_item = None
