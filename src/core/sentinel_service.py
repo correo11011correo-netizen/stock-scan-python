@@ -17,10 +17,10 @@ class SentinelService:
         """Crea la tabla de comandos para el Sentinel si no existe."""
         self.db.execute('''
             CREATE TABLE IF NOT EXISTS sentinel_commands (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                id SERIAL PRIMARY KEY,
                 command TEXT NOT NULL,
                 params TEXT,
-                status TEXT DEFAULT 'PENDING', -- 'PENDING', 'COMPLETED', 'FAILED'
+                status TEXT DEFAULT 'PENDING',
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
@@ -35,7 +35,7 @@ class SentinelService:
             import json
             params_json = json.dumps(params) if params else None
             self.db.execute(
-                "INSERT INTO sentinel_commands (command, params) VALUES (?, ?)",
+                "INSERT INTO sentinel_commands (command, params) VALUES (%s, %s)",
                 (command, params_json)
             )
             self.logger.info(f"Solicitud enviada al Sentinel: {command}")
@@ -50,3 +50,4 @@ class SentinelService:
             "SELECT * FROM sentinel_commands ORDER BY created_at DESC LIMIT 10"
         )
         return {"status": "success", "data": [dict(c) for c in commands]}
+
