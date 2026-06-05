@@ -11,10 +11,12 @@ from decimal import Decimal
 from ..commands.dispatcher import CommandDispatcher
 
 class DecimalEncoder(json.JSONEncoder):
-    """Encoder personalizado para serializar Decimal a float."""
+    """Encoder personalizado para serializar Decimal y datetime a tipos JSON-compatibles."""
     def default(self, obj):
         if isinstance(obj, Decimal):
             return float(obj)
+        elif isinstance(obj, datetime):
+            return obj.isoformat()
         return super().default(obj)
 
 class WebAPIHandler(BaseHTTPRequestHandler):
