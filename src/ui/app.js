@@ -14,6 +14,139 @@ function debounce(func, wait = 300) {
     };
 }
 
+// Toast Notification System
+const Toast = {
+    show(message, type = 'info', duration = 3000) {
+        const container = document.getElementById('toast-container') || this.createContainer();
+        
+        const toast = document.createElement('div');
+        toast.className = `toast toast-${type}`;
+        toast.innerHTML = `
+            <div class="toast-content">
+                <span class="toast-icon">${this.getIcon(type)}</span>
+                <span class="toast-message">${message}</span>
+            </div>
+        `;
+        
+        container.appendChild(toast);
+        
+        // Trigger animation
+        setTimeout(() => toast.classList.add('show'), 10);
+        
+        // Auto remove
+        setTimeout(() => {
+            toast.classList.remove('show');
+            setTimeout(() => toast.remove(), 300);
+        }, duration);
+    },
+    
+    createContainer() {
+        const container = document.createElement('div');
+        container.id = 'toast-container';
+        container.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            pointer-events: none;
+        `;
+        document.body.appendChild(container);
+        return container;
+    },
+    
+    getIcon(type) {
+        const icons = {
+            success: '✅',
+            error: '❌',
+            warning: '⚠️',
+            info: 'ℹ️'
+        };
+        return icons[type] || icons.info;
+    },
+    
+    success(msg, duration) { this.show(msg, 'success', duration); },
+    error(msg, duration) { this.show(msg, 'error', duration); },
+    warning(msg, duration) { this.show(msg, 'warning', duration); },
+    info(msg, duration) { this.show(msg, 'info', duration); }
+};
+
+// Agregar estilos de toast al documento
+const toastStyles = document.createElement('style');
+toastStyles.textContent = `
+    .toast {
+        background: rgba(15, 23, 42, 0.95);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(148, 163, 184, 0.2);
+        border-radius: 12px;
+        padding: 12px 16px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        min-width: 300px;
+        max-width: 400px;
+        pointer-events: auto;
+        opacity: 0;
+        transform: translateX(400px);
+        transition: all 0.3s ease;
+        font-size: 0.9rem;
+        color: #f1f5f9;
+    }
+    
+    .toast.show {
+        opacity: 1;
+        transform: translateX(0);
+    }
+    
+    .toast-content {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        width: 100%;
+    }
+    
+    .toast-icon {
+        font-size: 1.2rem;
+        flex-shrink: 0;
+    }
+    
+    .toast-message {
+        flex: 1;
+        word-break: break-word;
+    }
+    
+    .toast-success {
+        border-color: rgba(16, 185, 129, 0.3);
+        background: rgba(15, 23, 42, 0.95);
+    }
+    
+    .toast-error {
+        border-color: rgba(239, 68, 68, 0.3);
+        background: rgba(15, 23, 42, 0.95);
+    }
+    
+    .toast-warning {
+        border-color: rgba(245, 158, 11, 0.3);
+        background: rgba(15, 23, 42, 0.95);
+    }
+    
+    .toast-info {
+        border-color: rgba(99, 102, 241, 0.3);
+        background: rgba(15, 23, 42, 0.95);
+    }
+    
+    @media (max-width: 768px) {
+        .toast {
+            min-width: 280px;
+            max-width: 90vw;
+        }
+    }
+`;
+document.head.appendChild(toastStyles);
+
 const app = {
     state: {
         currentView: localStorage.getItem('current_view') || 'view-login',
@@ -50,7 +183,7 @@ const app = {
             }
         } catch (e) {
             console.error("❌ Error crítico durante la inicialización:", e);
-            alert("Error al cargar la aplicación. Por favor, revisa la consola.");
+            Toast.error("Error al cargar la aplicación");
         }
     },
 
@@ -121,6 +254,7 @@ const app = {
         try {
             await this.apiCall('sys.theme.set', { value: themeName });
             this.applyTheme();
+            Toast.success('Tema actualizado');
         } catch (e) { console.error(e); }
     },
 
@@ -153,6 +287,7 @@ const app = {
             await this.apiCall('sys.lang.set', { value: langCode });
             await this.loadTranslations();
             this.applyTranslations();
+            Toast.success('Idioma actualizado');
         } catch (e) { console.error(e); }
     },
 
@@ -200,7 +335,7 @@ const app = {
             });
             
             if (!response.ok) {
-                throw new Error(`Server responded with ${response.status}: ${response.statusText}`);
+                throw new Error(`Server responded with ${response.status}`);
             }
 
             const res = await response.json();
@@ -216,6 +351,12 @@ const app = {
     async login() {
         const user = document.getElementById('login-user').value;
         const pass = document.getElementById('login-pass').value;
+        
+        if (!user || !pass) {
+            Toast.warning('Completa usuario y contraseña');
+            return;
+        }
+        
         const res = await this.apiCall('auth.login', { username: user, password: pass });
         
         if (res.status === 'success') {
@@ -227,11 +368,12 @@ const app = {
             localStorage.setItem('user_data', JSON.stringify(res.user));
             localStorage.setItem('user_role', res.user.role);
             
+            Toast.success(`¡Bienvenido ${user}!`);
             this.setupAuthenticatedUI();
             this.loadStock();
             this.switchView('view-stock');
         } else {
-            alert(res.message || 'Login fallido');
+            Toast.error(res.message || 'Login fallido');
         }
     },
 
@@ -239,6 +381,12 @@ const app = {
         const biz = document.getElementById('reg-business').value;
         const user = document.getElementById('reg-user').value;
         const pass = document.getElementById('reg-pass').value;
+        
+        if (!biz || !user || !pass) {
+            Toast.warning('Completa todos los campos');
+            return;
+        }
+        
         const res = await this.apiCall('auth.register_owner', { 
             business_name: biz, 
             username: user, 
@@ -246,10 +394,10 @@ const app = {
         });
         
         if (res.status === 'success') {
-            alert("Negocio registrado con éxito. Ahora puedes iniciar sesión.");
+            Toast.success("Negocio registrado. Inicia sesión");
             this.switchView('view-login');
         } else {
-            alert(res.message || 'Registro fallido');
+            Toast.error(res.message || 'Registro fallido');
         }
     },
 
@@ -258,6 +406,7 @@ const app = {
         this.state.token = null;
         this.state.user = {};
         this.state.role = 'empleado';
+        Toast.info('Sesión cerrada');
         this.switchView('view-login');
     },
 
@@ -275,7 +424,7 @@ const app = {
         const pass = document.getElementById('emp-pass')?.value;
         
         if (!user || !pass) {
-            alert("Por favor, ingrese usuario y contraseña");
+            Toast.warning("Ingrese usuario y contraseña");
             return;
         }
 
@@ -286,12 +435,12 @@ const app = {
         });
         
         if (res.status === 'success') {
-            alert("Empleado agregado correctamente ✅");
+            Toast.success("Empleado agregado");
             document.getElementById('emp-user').value = '';
             document.getElementById('emp-pass').value = '';
             this.loadPersonnel();
         } else {
-            alert("Error al invitar empleado: " + res.message);
+            Toast.error(res.message);
         }
     },
 
@@ -302,15 +451,23 @@ const app = {
             permission_key: permKey, 
             granted: granted 
         });
-        if (res.status === 'success') this.loadPersonnel();
-        else alert(res.message);
+        if (res.status === 'success') {
+            Toast.success('Permiso actualizado');
+            this.loadPersonnel();
+        } else {
+            Toast.error(res.message);
+        }
     },
 
     async revokeAccess(userId) {
-        if (!confirm("¿Estás seguro de revocar el acceso a este usuario?")) return;
+        if (!confirm("¿Revocar acceso a este usuario?")) return;
         const res = await this.apiCall('user.revoke_access', { user_id: userId });
-        if (res.status === 'success') this.loadPersonnel();
-        else alert(res.message);
+        if (res.status === 'success') {
+            Toast.success('Acceso revocado');
+            this.loadPersonnel();
+        } else {
+            Toast.error(res.message);
+        }
     },
 
     async loadPersonnel() {
@@ -337,9 +494,9 @@ const app = {
     },
 
     async promptPermission(userId) {
-        const permKey = prompt("Ingrese la llave del permiso (ej: perm_stock_read):");
+        const permKey = prompt("Llave del permiso:");
         if (!permKey) return;
-        const granted = confirm(`¿Desea CONCEDER el permiso ${permKey}?`);
+        const granted = confirm(`¿Conceder ${permKey}?`);
         await this.setPermission(userId, permKey, granted);
     },
 
@@ -398,9 +555,12 @@ const app = {
         };
         const res = await this.apiCall('stock.add', params);
         if (res.status === 'success') {
+            Toast.success('Producto guardado');
             this.closeModal('modal-product');
             this.loadStock();
-        } else { alert(res.message); }
+        } else { 
+            Toast.error(res.message);
+        }
     },
 
     async editProduct(code) {
@@ -418,9 +578,14 @@ const app = {
     },
 
     async deleteProduct(code) {
-        if (confirm('¿Eliminar este producto?')) {
+        if (confirm('¿Eliminar producto?')) {
             const res = await this.apiCall('stock.delete', { code });
-            if (res.status === 'success') this.loadStock();
+            if (res.status === 'success') {
+                Toast.success('Producto eliminado');
+                this.loadStock();
+            } else {
+                Toast.error(res.message);
+            }
         }
     },
 
@@ -434,6 +599,9 @@ const app = {
             this.state.cart.push(res.data);
             this.renderCart();
             document.getElementById('sale-scan').value = '';
+            Toast.success('Producto agregado');
+        } else {
+            Toast.error(res.message);
         }
     },
 
@@ -463,10 +631,14 @@ const app = {
     removeFromCart(idx) {
         this.state.cart.splice(idx, 1);
         this.renderCart();
+        Toast.info('Producto removido');
     },
 
     openCheckout() {
-        if (this.state.cart.length === 0) return alert("Carrito vacío");
+        if (this.state.cart.length === 0) {
+            Toast.warning("Carrito vacío");
+            return;
+        }
         this.showModal('modal-checkout');
     },
 
@@ -478,12 +650,12 @@ const app = {
         
         const res = await this.apiCall('sales.confirm', { items });
         if (res.status === 'success') {
-            alert('Venta registrada exitosamente');
+            Toast.success('Venta registrada');
             this.state.cart = [];
             this.renderCart();
             this.closeModal('modal-checkout');
         } else {
-            alert(res.message);
+            Toast.error(res.message);
         }
     },
 
@@ -508,34 +680,33 @@ const app = {
             const data = await response.json();
             
             if (data.payload.status === 'success') {
-                document.getElementById('import-status').textContent = '✅ Archivo cargado';
+                Toast.success('Archivo cargado');
                 document.getElementById('btn-run-import').disabled = false;
             } else {
-                document.getElementById('import-status').textContent = '❌ Error: ' + data.payload.message;
+                Toast.error(data.payload.message);
             }
         } catch (e) {
-            document.getElementById('import-status').textContent = '❌ Error: ' + e.message;
+            Toast.error('Error en upload');
         }
     },
 
     async runImportPreview() {
-        alert('Función de importación en desarrollo');
+        Toast.info('Función en desarrollo');
     },
 
     async commitImport() {
-        alert('Función de importación en desarrollo');
+        Toast.info('Función en desarrollo');
     },
 
     // --- SUBSCRIPTION MANAGEMENT ---
 
     async loadSubscription() {
-        // Cargar datos de suscripción
         const container = document.getElementById('current-plan');
         if (container && this.state.user) {
             container.innerHTML = `
-                <strong>Plan Actual:</strong> ${this.state.user.plan || 'FREE'}<br>
+                <strong>Plan:</strong> ${this.state.user.plan || 'FREE'}<br>
                 <strong>Créditos:</strong> ${this.state.user.credits || 0}<br>
-                <strong>Tenant ID:</strong> ${this.state.user.tenant_id || '-'}
+                <strong>Tenant:</strong> ${this.state.user.tenant_id || '-'}
             `;
         }
     },
@@ -547,10 +718,10 @@ const app = {
             credits: credits 
         });
         if (res.status === 'success') {
-            alert(`¡Plan actualizado a ${plan} exitosamente!`);
+            Toast.success(`Plan actualizado a ${plan}`);
             await this.loadSubscription();
         } else {
-            alert(res.message);
+            Toast.error(res.message);
         }
     },
 
@@ -561,25 +732,27 @@ const app = {
         const limit = parseFloat(document.getElementById('alias-limit')?.value || 0);
         
         if (!name) {
-            alert('Ingrese nombre del alias');
+            Toast.warning('Ingrese nombre del alias');
             return;
         }
 
         const res = await this.apiCall('alias.add', { name, limit });
         if (res.status === 'success') {
-            alert('Alias agregado');
+            Toast.success('Alias agregado');
             document.getElementById('alias-name').value = '';
             document.getElementById('alias-limit').value = '';
         } else {
-            alert(res.message);
+            Toast.error(res.message);
         }
     },
 
     async deleteAlias(aliasId) {
-        if (confirm('¿Eliminar este alias?')) {
+        if (confirm('¿Eliminar alias?')) {
             const res = await this.apiCall('alias.delete', { alias_id: aliasId });
             if (res.status === 'success') {
-                alert('Alias eliminado');
+                Toast.success('Alias eliminado');
+            } else {
+                Toast.error(res.message);
             }
         }
     },
@@ -590,9 +763,9 @@ const app = {
         const amount = parseFloat(document.getElementById('cash-amount')?.value || 0);
         const res = await this.apiCall('cash.open', { amount });
         if (res.status === 'success') {
-            alert('Caja abierta');
+            Toast.success('Caja abierta');
         } else {
-            alert(res.message);
+            Toast.error(res.message);
         }
     },
 
@@ -600,9 +773,9 @@ const app = {
         const amount = parseFloat(document.getElementById('cash-amount')?.value || 0);
         const res = await this.apiCall('cash.close', { amount });
         if (res.status === 'success') {
-            alert('Caja cerrada');
+            Toast.success('Caja cerrada');
         } else {
-            alert(res.message);
+            Toast.error(res.message);
         }
     },
 
@@ -611,28 +784,28 @@ const app = {
     async exportCSV() {
         const res = await this.apiCall('stock.export_csv', {});
         if (res.status === 'success') {
-            alert('Exportación completada');
+            Toast.success('Exportación completada');
         } else {
-            alert(res.message);
+            Toast.error(res.message);
         }
     },
 
     // --- SENTINEL / ADMIN ---
 
     async updateSentinel() {
-        alert('Función de sentinel en desarrollo');
+        Toast.info('Función en desarrollo');
     },
 
     async rollbackSentinel() {
-        alert('Función de rollback en desarrollo');
+        Toast.info('Función en desarrollo');
     },
 
     async selectMasterTarget() {
-        alert('Función de master en desarrollo');
+        Toast.info('Función en desarrollo');
     },
 
     async masterUpdateSubscription() {
-        alert('Función de master en desarrollo');
+        Toast.info('Función en desarrollo');
     }
 };
 
