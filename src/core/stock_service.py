@@ -24,7 +24,7 @@ class StockService:
 
             query = '''
                 INSERT INTO products (codigo, nombre, precio, cantidad, categoria, es_peso)
-                VALUES (?, ?, ?, ?, ?, ?)
+                VALUES (%s, %s, %s, %s, %s, %s)
                 ON CONFLICT(codigo) DO UPDATE SET
                     nombre=excluded.nombre,
                     precio=excluded.precio,
@@ -33,7 +33,7 @@ class StockService:
                     es_peso=excluded.es_peso,
                     last_updated=CURRENT_TIMESTAMP
             '''
-            params = (codigo, nombre, precio, cantidad, categoria, 1 if es_peso else 0)
+            params = (codigo, nombre, precio, cantidad, categoria, True if es_peso else False)
             self.db.execute(query, params)
             
             self.logger.info(f"Producto procesado: {nombre} ({codigo})")
@@ -44,7 +44,7 @@ class StockService:
 
     def get_product(self, codigo):
         """Obtiene los detalles de un producto específico."""
-        query = "SELECT * FROM products WHERE codigo = ?"
+        query = "SELECT * FROM products WHERE codigo = %s"
         product = self.db.fetch_one(query, (codigo,))
         if product:
             return {"status": "success", "data": dict(product)}
@@ -59,11 +59,11 @@ class StockService:
         params = []
 
         if filter_text:
-            query += " AND (nombre LIKE ? OR codigo LIKE ?)"
+            query += " AND (nombre LIKE %s OR codigo LIKE %s)"
             params.extend([f"%{filter_text}%", f"%{filter_text}%"])
         
         if category:
-            query += " AND categoria = ?"
+            query += " AND categoria = %s"
             params.append(category)
             
         query += " ORDER BY nombre ASC"
@@ -88,7 +88,7 @@ class StockService:
             if new_qty < 0:
                 return {"status": "error", "message": f"Stock insuficiente. Disponible: {current_qty}"}
 
-            query = "UPDATE products SET cantidad = ?, last_updated = CURRENT_TIMESTAMP WHERE codigo = ?"
+            query = "UPDATE products SET cantidad = %s, last_updated = CURRENT_TIMESTAMP WHERE codigo = %s"
             self.db.execute(query, (new_qty, codigo))
             
             self.logger.info(f"Stock actualizado: {codigo} | Cambio: {amount} | Nuevo Total: {new_qty}")
@@ -100,7 +100,7 @@ class StockService:
     def delete_product(self, codigo):
         """Elimina un producto del inventario."""
         try:
-            query = "DELETE FROM products WHERE codigo = ?"
+            query = "DELETE FROM products WHERE codigo = %s"
             self.db.execute(query, (codigo,))
             return {"status": "success", "message": "Producto eliminado correctamente."}
         except Exception as e:
@@ -112,7 +112,7 @@ class StockService:
         Retorna productos cuyo stock es inferior al umbral definido.
         Copia la lógica de alertas del original.
         """
-        query = "SELECT * FROM products WHERE cantidad < ? ORDER BY cantidad ASC"
+        query = "SELECT * FROM products WHERE cantidad < %s ORDER BY cantidad ASC"
         products = self.db.fetch_all(query, (threshold,))
         return {"status": "success", "data": [dict(p) for p in products]}
 
@@ -124,7 +124,7 @@ class StockService:
         try:
             query = '''
                 INSERT INTO products (codigo, nombre, precio, cantidad, categoria, es_peso)
-                VALUES (?, ?, ?, ?, ?, ?)
+                VALUES (%s, %s, %s, %s, %s, %s)
                 ON CONFLICT(codigo) DO UPDATE SET
                     nombre=excluded.nombre,
                     precio=excluded.precio,
@@ -142,7 +142,7 @@ class StockService:
                     p.get('precio'),
                     p.get('cantidad'),
                     p.get('categoria'),
-                    1 if p.get('es_peso') else 0
+                    True if p.get('es_peso') else False
                 ))
             
             # Usamos el gestor de DB para ejecutar masivamente

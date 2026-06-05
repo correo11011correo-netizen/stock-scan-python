@@ -23,7 +23,7 @@ class SystemService:
         Este es el corazón de la trazabilidad del sistema.
         """
         try:
-            query = "INSERT INTO audit (usuario, accion, detalle) VALUES (?, ?, ?)"
+            query = "INSERT INTO audit (usuario, accion, detalle) VALUES (%s, %s, %s)"
             self.db.execute(query, (usuario, accion, detalle))
             # También lo enviamos al logger de Python para debug en tiempo real
             self.logger.info(f"AUDIT | User: {usuario} | Action: {accion} | Detail: {detalle}")
@@ -38,7 +38,7 @@ class SystemService:
         """Guarda una configuración en la base de datos (ej: tema, idioma)."""
         try:
             query = '''
-                INSERT INTO settings (key, value) VALUES (?, ?)
+                INSERT INTO settings (key, value) VALUES (%s, %s)
                 ON CONFLICT(key) DO UPDATE SET value=excluded.value
             '''
             self.db.execute(query, (key, str(value)))
@@ -49,7 +49,7 @@ class SystemService:
 
     def get_setting(self, key, default=None):
         """Recupera una configuración específica."""
-        query = "SELECT value FROM settings WHERE key = ?"
+        query = "SELECT value FROM settings WHERE key = %s"
         res = self.db.fetch_one(query, (key,))
         if res:
             return {"status": "success", "value": res['value']}
@@ -105,6 +105,6 @@ class SystemService:
         return {
             "status": "success",
             "version": self.version,
-            "db_path": self.db.db_path,
             "timestamp": datetime.now().isoformat()
         }
+

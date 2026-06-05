@@ -64,7 +64,7 @@ class AuthService:
             SELECT u.*, t.plan, t.credits 
             FROM users u 
             JOIN tenants t ON u.tenant_id = t.id 
-            WHERE u.username = ? AND u.password_hash = ?
+            WHERE u.username = %s AND u.password_hash = %s
             ''', 
             (username, pwd_hash)
         )
@@ -109,7 +109,7 @@ class AuthService:
             return None
         
         tenant = self.global_db.fetch_one(
-            "SELECT schema_name FROM tenants WHERE id = ?", 
+            "SELECT schema_name FROM tenants WHERE id = %s", 
             (tenant_id,)
         )
         return tenant["schema_name"] if tenant else None
@@ -186,7 +186,7 @@ class AuthService:
         try:
             user_id = str(uuid.uuid4())[:8]
             self.global_db.execute(
-                "INSERT INTO users (id, username, password_hash, role, tenant_id) VALUES (?, ?, ?, ?, ?)",
+                "INSERT INTO users (id, username, password_hash, role, tenant_id) VALUES (%s, %s, %s, %s, %s)",
                 (user_id, username, self._hash_password(password), "EMPLOYEE", tenant_id)
             )
             return {"status": "success", "user_id": user_id}
@@ -199,7 +199,7 @@ class AuthService:
         try:
             # Actualizar plan y sumar créditos
             self.global_db.execute(
-                "UPDATE tenants SET plan = ?, credits = credits + ? WHERE id = ?",
+                "UPDATE tenants SET plan = %s, credits = credits + %s WHERE id = %s",
                 (new_plan, additional_credits, tenant_id)
             )
             self.logger.info(f"Suscripción actualizada para {tenant_id}: {new_plan}, +{additional_credits} créditos.")
@@ -207,3 +207,4 @@ class AuthService:
         except Exception as e:
             self.logger.error(f"Error updating subscription: {e}")
             return {"status": "error", "message": str(e)}
+
