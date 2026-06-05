@@ -151,20 +151,34 @@ class AuthService:
     def create_owner_account(self, username, password, business_name) -> Dict[str, Any]:
         """
         Crea un nuevo dueño y su respectiva instancia de negocio (Tenant) en PostgreSQL.
+        Valida que el usuario no exista antes de crearlo.
         """
         try:
+            # 1. VALIDAR que el usuario NO existe
+            existing_user = self.global_db.fetch_one(
+                "SELECT id FROM users WHERE username = %s",
+                (username,)
+            )
+            
+            if existing_user:
+                self.logger.warning(f"Intento de crear usuario duplicado: {username}")
+                return {
+                    "status": "error", 
+                    "message": f"El usuario '{username}' ya existe. Intenta con otro nombre."
+                }
+            
             user_id = str(uuid.uuid4())[:8]
             tenant_id = f"tenant_{user_id}"
             # En Postgres, el esquema debe empezar por letra y no tener caracteres especiales complicados
             schema_name = f"schema_{user_id}"
             
-            # 1. Insertar Tenant con su esquema asignado
+            # 2. Insertar Tenant con su esquema asignado
             self.global_db.execute(
                 "INSERT INTO tenants (id, owner_id, schema_name, business_name, plan, credits) VALUES (%s, %s, %s, %s, %s, %s)",
                 (tenant_id, user_id, schema_name, business_name, "FREE", 10)
             )
 
-            # 2. Insertar Usuario como OWNER
+            # 3. Insertar Usuario como OWNER
             self.global_db.execute(
                 "INSERT INTO users (id, username, password_hash, role, tenant_id) VALUES (%s, %s, %s, %s, %s)",
                 (user_id, username, self._hash_password(password), "OWNER", tenant_id)
@@ -184,6 +198,19 @@ class AuthService:
     def create_employee_account(self, username, password, tenant_id) -> Dict[str, Any]:
         """Crea un usuario con rol EMPLOYEE vinculado a un negocio existente."""
         try:
+            # VALIDAR que el usuario NO existe
+            existing_user = self.global_db.fetch_one(
+                "SELECT id FROM users WHERE username = %s",
+                (username,)
+            )
+            
+            if existing_user:
+                self.logger.warning(f"Intento de crear usuario duplicado: {username}")
+                return {
+                    "status": "error", 
+                    "message": f"El usuario '{username}' ya existe. Intenta con otro nombre."
+                }
+            
             user_id = str(uuid.uuid4())[:8]
             self.global_db.execute(
                 "INSERT INTO users (id, username, password_hash, role, tenant_id) VALUES (%s, %s, %s, %s, %s)",
