@@ -193,9 +193,9 @@ class WebAPIHandler(BaseHTTPRequestHandler):
 
             # 3. Resolución Dinámica de la Base de Datos del Tenant
             tenant_id = user_session["tenant_id"]
-            db_path = self.auth_service.resolve_tenant_db(tenant_id)
+            schema_name = self.auth_service.resolve_tenant_db(tenant_id)
             
-            if not db_path:
+            if not schema_name:
                 return self._json_response({"status": "error", "message": "No se pudo localizar la base de datos del negocio."}, 500)
 
             # Determinar estado PRO basándose en la sesión/tenant, NO en el cliente
@@ -209,7 +209,7 @@ class WebAPIHandler(BaseHTTPRequestHandler):
             from ..core.system_service import SystemService
             from ..commands.dispatcher import CommandDispatcher
 
-            tenant_db = DatabaseManager(db_path=db_path)
+            tenant_db = DatabaseManager(schema_name=schema_name)
             tenant_stock = StockService(tenant_db)
             tenant_sales = SalesService(tenant_db, tenant_stock)
             tenant_sys = SystemService(tenant_db)
