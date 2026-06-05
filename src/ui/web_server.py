@@ -7,7 +7,15 @@ from pathlib import Path
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from threading import Thread
 from datetime import datetime
+from decimal import Decimal
 from ..commands.dispatcher import CommandDispatcher
+
+class DecimalEncoder(json.JSONEncoder):
+    """Encoder personalizado para serializar Decimal a float."""
+    def default(self, obj):
+        if isinstance(obj, Decimal):
+            return float(obj)
+        return super().default(obj)
 
 class WebAPIHandler(BaseHTTPRequestHandler):
     """
@@ -35,7 +43,7 @@ class WebAPIHandler(BaseHTTPRequestHandler):
             "payload": data
         }
         self._set_headers(status)
-        self.wfile.write(json.dumps(response).encode())
+        self.wfile.write(json.dumps(response, cls=DecimalEncoder).encode())
 
     def do_OPTIONS(self):
         self._set_headers()
